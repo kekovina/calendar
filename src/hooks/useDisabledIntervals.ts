@@ -1,59 +1,46 @@
 import type { Dayjs } from 'dayjs'
 import type { RefObject } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import type { TimeRange } from '../types'
+import type { SchedulerEvent } from '../types'
 import { computeIntervalCssStyles, getSlotWidth } from '../utils'
 
-type UseDisabledIntervalsProps = {
-  disabledIntervals: TimeRange[]
+type UseEventsProps = {
+  events: SchedulerEvent[]
   timeLineRef: RefObject<HTMLDivElement | null>
   interval: number
   startDate: Dayjs
 }
 
-export function useDisabledIntervals({
-  disabledIntervals,
-  timeLineRef,
-  interval,
-  startDate,
-}: UseDisabledIntervalsProps) {
+export function useDisabledIntervals({ events, timeLineRef, interval, startDate }: UseEventsProps) {
   const [slotWidth, setSlotWidth] = useState(0)
 
-  // Update slot width when timeline is ready
   useEffect(() => {
     if (!timeLineRef.current) return
 
     const updateSlotWidth = () => {
       const width = getSlotWidth(timeLineRef.current)
-      if (width > 0) {
-        setSlotWidth(width)
-      }
+      if (width > 0) setSlotWidth(width)
     }
 
-    // Check immediately
     updateSlotWidth()
 
-    // Also observe for changes
     const observer = new ResizeObserver(updateSlotWidth)
     observer.observe(timeLineRef.current)
-
     return () => observer.disconnect()
   }, [timeLineRef])
 
-  const disabledIntervalsData = useMemo(() => {
+  return useMemo(() => {
     if (!timeLineRef.current || slotWidth === 0) return []
 
     const dayStart = startDate.startOf('day')
     const dayEnd = startDate.endOf('day')
 
-    return disabledIntervals
-      .map(([start, end]) => {
-        // Skip intervals that don't overlap with current day
-        if (end.isBefore(dayStart) || start.isAfter(dayEnd)) {
-          return null
-        }
+    return events
+      .map((event) => {
+        const [start, end] = event.range
 
-        // Clip interval to day boundaries
+        if (end.isBefore(dayStart) || start.isAfter(dayEnd)) return null
+
         const clippedStart = start.isBefore(dayStart) ? dayStart : start
         const clippedEnd = end.isAfter(dayEnd) ? dayEnd : end
 
@@ -65,13 +52,13 @@ export function useDisabledIntervals({
         })
 
         return {
-          id: `${start.valueOf()}-${end.valueOf()}`,
+          id: event.id ?? `${start.valueOf()}-${end.valueOf()}`,
           left: styles.x,
           width: styles.width,
+          label: event.label,
+          className: event.className,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
-  }, [disabledIntervals, timeLineRef, interval, startDate, slotWidth])
-
-  return disabledIntervalsData
+  }, [events, timeLineRef, interval, startDate, slotWidth])
 }

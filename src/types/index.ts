@@ -3,6 +3,13 @@ import type { Dayjs } from 'dayjs'
 
 export type TimeRange = [Dayjs, Dayjs]
 
+export type SchedulerEvent = {
+  id?: string
+  range: TimeRange
+  label?: string
+  className?: string
+}
+
 export type SchedulerClassNames = {
   root?: string
   track?: string
@@ -12,19 +19,21 @@ export type SchedulerClassNames = {
   selectionError?: string
   resizeHandleLeft?: string
   resizeHandleRight?: string
-  disabledInterval?: string
+  eventBlock?: string
 }
 
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
-  disabledIntervals?: TimeRange[]
+  events?: SchedulerEvent[]
   onChange?: (range: TimeRange, hasError: boolean) => void
   startDate?: Dayjs
   endDate?: Dayjs
   boundsStart?: Dayjs
   boundsEnd?: Dayjs
+  /** Slot step in minutes. */
   interval?: number
+  /** Minimum event duration in minutes. Must be a positive multiple of `interval`. Defaults to `interval`. */
   minimumInterval?: number
   fixedDuration?: number
   disabled?: boolean
@@ -38,32 +47,30 @@ export type TimeLineRangeProps = {
 
 // ─── Scheduler ────────────────────────────────────────────────────────────────
 
-/** `single-resource`: 1 resource × 7 days. `multi-resource`: N resources × 1 day. */
 export type SchedulerView = 'single-resource' | 'multi-resource'
 
 export type SchedulerResource = {
   id: string
   label: string
   disabled?: boolean
-  disabledIntervals?: TimeRange[]
+  events?: SchedulerEvent[]
   classNames?: SchedulerClassNames
 }
 
-/** Selection key format: `${resourceId}:${YYYY-MM-DD}` */
 export type SchedulerSelections = Record<string, TimeRange | null>
 
 export type SchedulerProps = {
   view: SchedulerView
-  /** Anchor date. In multi-resource — the displayed day. In single-resource — any day of the displayed week. */
   date: Dayjs
   resources: SchedulerResource[]
-  /** Used in single-resource view to pick which resource's week is shown. */
   activeResourceId?: string
   selections?: SchedulerSelections
   onChange?: (resourceId: string, date: Dayjs, range: TimeRange, hasError: boolean) => void
   startHour?: number
   endHour?: number
+  /** Slot step in minutes. */
   interval?: number
+  /** Minimum event duration in minutes. Must be a positive multiple of `interval`. Defaults to `interval`. */
   minimumInterval?: number
   fixedDuration?: number
   disabled?: boolean

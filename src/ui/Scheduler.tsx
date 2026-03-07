@@ -3,7 +3,6 @@ import type dayjs from 'dayjs'
 import { useMemo } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
 import type { SchedulerProps, SchedulerResource } from '../types'
-import type { TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
 
 const LABEL_WIDTH = 'w-28 shrink-0'
@@ -88,7 +87,7 @@ export function Scheduler({
           const rowDisabled = disabled || (row.resource.disabled ?? false)
           const mergedClassNames = { ...cls, ...row.resource.classNames }
           const selectedInterval = selections[row.key] ?? null
-          const rowDisabledIntervals: TimeRange[] = row.resource.disabledIntervals ?? []
+          const rowEvents = row.resource.events ?? []
 
           return (
             <div key={row.key} className="flex items-center">
@@ -114,7 +113,7 @@ export function Scheduler({
                   startDate={rowStartDate}
                   endDate={rowEndDate}
                   selectedInterval={selectedInterval}
-                  disabledIntervals={rowDisabledIntervals}
+                  events={rowEvents}
                   interval={interval}
                   minimumInterval={minimumInterval ?? interval}
                   fixedDuration={fixedDuration}

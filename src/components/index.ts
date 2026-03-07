@@ -1,4 +1,4 @@
-export { DisabledInterval } from './DisabledInterval'
+export { EventBlock } from './EventBlock'
 export { DisplayInterval } from './DisplayInterval'
 export { ResizeHandle } from './ResizeHandle'
 export { SelectionRnd } from './SelectionRnd'

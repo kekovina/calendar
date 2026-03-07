@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import dayjs from 'dayjs'
 import React, { forwardRef, useMemo, useRef, useState } from 'react'
-import { DisabledInterval } from '../components/DisabledInterval'
+import { EventBlock } from '../components/EventBlock'
 import { SelectionRnd } from '../components/SelectionRnd'
 import { TimeSlot } from '../components/TimeSlot'
 import { useDisabledIntervals } from '../hooks/useDisabledIntervals'
@@ -19,7 +19,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       disabled = false,
       disablePast = false,
       selectedInterval,
-      disabledIntervals = [],
+      events = [],
       onChange,
       minimumInterval = 30,
       startDate = dayjs().startOf('day'),
@@ -47,7 +47,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       [startDate, endDate, interval],
     )
 
-    const { validateInterval } = useIntervalValidation(disabledIntervals, disablePast)
+    const { validateInterval } = useIntervalValidation(events, disablePast)
 
     const rndState = useRndState({
       selectedInterval: selectedInterval ?? null,
@@ -89,8 +89,8 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       clearPreview: rndState.clearPreview,
     })
 
-    const disabledIntervalsData = useDisabledIntervals({
-      disabledIntervals,
+    const eventBlocks = useDisabledIntervals({
+      events,
       timeLineRef: internalRef,
       interval,
       startDate,
@@ -106,15 +106,16 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       <div className={classNames('h-[65px] w-full', cls?.root ?? 'bg-gray-100', className)}>
         <div
           className={classNames('relative flex h-full items-center', cls?.track)}
-          ref={timeLineRef}
+          ref={internalRef}
         >
-          {disabledIntervalsData.map((data) => (
-            <DisabledInterval
-              key={`${id}::${data.id}`}
-              id={data.id}
-              left={data.left}
-              width={data.width}
-              className={cls?.disabledInterval}
+          {eventBlocks.map((block) => (
+            <EventBlock
+              key={`${id}::${block.id}`}
+              id={block.id}
+              left={block.left}
+              width={block.width}
+              label={block.label}
+              className={block.className ?? cls?.eventBlock}
             />
           ))}
 
