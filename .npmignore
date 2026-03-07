@@ -1,0 +1,10 @@
+src
+playground
+*.config.ts
+*.config.js
+.husky
+.prettierrc
+.prettierignore
+eslint.config.ts
+tsconfig*.json
+node_modules
