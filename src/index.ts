@@ -1,2 +1,2 @@
-export { Scheduler } from './components/Scheduler'
-export type { SchedulerProps } from './components/Scheduler'
+export { default as TimeLineRange } from './ui/TimeLineRange'
+export type { TimeLineRangeProps, TimeRange, SchedulerClassNames } from './types'

@@ -1,5 +1,6 @@
 src
 playground
+index.html
 *.config.ts
 *.config.js
 .husky
