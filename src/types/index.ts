@@ -35,3 +35,43 @@ export type TimeLineRangeProps = {
   renderResizeHandle?: (dir: 'left' | 'right') => ReactNode
   renderIntervalContent?: (interval: TimeRange, isSmall: boolean) => ReactNode
 }
+
+// ─── Scheduler ────────────────────────────────────────────────────────────────
+
+/** `single-resource`: 1 resource × 7 days. `multi-resource`: N resources × 1 day. */
+export type SchedulerView = 'single-resource' | 'multi-resource'
+
+export type SchedulerResource = {
+  id: string
+  label: string
+  disabled?: boolean
+  disabledIntervals?: TimeRange[]
+  classNames?: SchedulerClassNames
+}
+
+/** Selection key format: `${resourceId}:${YYYY-MM-DD}` */
+export type SchedulerSelections = Record<string, TimeRange | null>
+
+export type SchedulerProps = {
+  view: SchedulerView
+  /** Anchor date. In multi-resource — the displayed day. In single-resource — any day of the displayed week. */
+  date: Dayjs
+  resources: SchedulerResource[]
+  /** Used in single-resource view to pick which resource's week is shown. */
+  activeResourceId?: string
+  selections?: SchedulerSelections
+  onChange?: (resourceId: string, date: Dayjs, range: TimeRange, hasError: boolean) => void
+  startHour?: number
+  endHour?: number
+  interval?: number
+  minimumInterval?: number
+  fixedDuration?: number
+  disabled?: boolean
+  disablePast?: boolean
+  debug?: boolean
+  className?: string
+  classNames?: SchedulerClassNames
+  renderResizeHandle?: (dir: 'left' | 'right') => ReactNode
+  renderIntervalContent?: (interval: TimeRange, isSmall: boolean) => ReactNode
+  renderRowLabel?: (row: { resource: SchedulerResource; date: Dayjs }) => ReactNode
+}

@@ -1,80 +1,68 @@
 import dayjs, { type Dayjs } from 'dayjs'
+import weekday from 'dayjs/plugin/weekday'
+import localeData from 'dayjs/plugin/localeData'
 import { useState } from 'react'
-import { TimeLineRange } from '../src'
-import type { TimeRange } from '../src'
+import { Scheduler } from '../src'
+import type { SchedulerResource, SchedulerSelections, SchedulerView } from '../src'
 
-type ViewMode = 'single' | 'multi'
+dayjs.extend(weekday)
+dayjs.extend(localeData)
 
-type Resource = {
-  id: string
-  name: string
-  color: {
-    root: string
-    selection: string
-    handleLeft: string
-    handleRight: string
-    disabled: string
-  }
-  disabled?: boolean
-}
-
-const RESOURCES: Resource[] = [
+const RESOURCES: SchedulerResource[] = [
   {
     id: 'room-a',
-    name: 'Зал А',
-    color: {
+    label: 'Зал А',
+    disabledIntervals: [],
+    classNames: {
       root: 'bg-blue-50',
       selection: 'bg-blue-500',
-      handleLeft: 'bg-blue-700',
-      handleRight: 'bg-blue-700',
-      disabled: 'bg-blue-200',
+      resizeHandleLeft: 'bg-blue-700',
+      resizeHandleRight: 'bg-blue-700',
+      disabledInterval: 'bg-blue-200',
     },
   },
   {
     id: 'room-b',
-    name: 'Зал Б',
-    color: {
+    label: 'Зал Б',
+    disabledIntervals: [],
+    classNames: {
       root: 'bg-emerald-50',
       selection: 'bg-emerald-500',
-      handleLeft: 'bg-emerald-700',
-      handleRight: 'bg-emerald-700',
-      disabled: 'bg-emerald-200',
+      resizeHandleLeft: 'bg-emerald-700',
+      resizeHandleRight: 'bg-emerald-700',
+      disabledInterval: 'bg-emerald-200',
     },
   },
   {
     id: 'room-c',
-    name: 'Переговорная',
-    color: {
-      root: 'bg-violet-50',
-      selection: 'bg-violet-500',
-      handleLeft: 'bg-violet-700',
-      handleRight: 'bg-violet-700',
-      disabled: 'bg-violet-200',
-    },
+    label: 'Переговорная',
     disabled: true,
+    classNames: {
+      root: 'bg-gray-50',
+    },
   },
   {
     id: 'room-d',
-    name: 'Коворкинг',
-    color: {
+    label: 'Коворкинг',
+    disabledIntervals: [],
+    classNames: {
       root: 'bg-amber-50',
       selection: 'bg-amber-500',
-      handleLeft: 'bg-amber-700',
-      handleRight: 'bg-amber-700',
-      disabled: 'bg-amber-200',
+      resizeHandleLeft: 'bg-amber-700',
+      resizeHandleRight: 'bg-amber-700',
+      disabledInterval: 'bg-amber-200',
     },
   },
 ]
 
-function makeDisabled(base: Dayjs): TimeRange[] {
+function makeDisabled(base: Dayjs) {
   return [
     [base.hour(10).minute(0), base.hour(11).minute(30)],
     [base.hour(14).minute(0), base.hour(15).minute(0)],
-    [base.hour(18).minute(0), base.hour(19).minute(0)],
-  ]
+  ] as [Dayjs, Dayjs][]
 }
 
-function DateTimeControls({
+function Controls({
   date,
   startHour,
   endHour,
@@ -87,56 +75,55 @@ function DateTimeControls({
   endHour: number
   interval: number
   disablePast: boolean
-  onChange: (patch: {
-    date?: Dayjs
-    startHour?: number
-    endHour?: number
-    interval?: number
-    disablePast?: boolean
-  }) => void
+  onChange: (
+    p: Partial<{
+      date: Dayjs
+      startHour: number
+      endHour: number
+      interval: number
+      disablePast: boolean
+    }>,
+  ) => void
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="mb-5 flex flex-wrap items-end gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
         Дата
         <input
           type="date"
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={date.format('YYYY-MM-DD')}
           onChange={(e) => onChange({ date: dayjs(e.target.value) })}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </label>
-
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Начало
+        Начало (ч)
         <input
           type="number"
           min={0}
           max={endHour - 1}
-          className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={startHour}
           onChange={(e) => onChange({ startHour: Number(e.target.value) })}
+          className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </label>
-
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Конец
+        Конец (ч)
         <input
           type="number"
           min={startHour + 1}
           max={24}
-          className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={endHour}
           onChange={(e) => onChange({ endHour: Number(e.target.value) })}
+          className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </label>
-
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
         Шаг (мин)
         <select
-          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={interval}
           onChange={(e) => onChange({ interval: Number(e.target.value) })}
+          className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           {[15, 30, 60].map((v) => (
             <option key={v} value={v}>
@@ -145,13 +132,12 @@ function DateTimeControls({
           ))}
         </select>
       </label>
-
       <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-600">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded"
           checked={disablePast}
           onChange={(e) => onChange({ disablePast: e.target.checked })}
+          className="h-4 w-4 rounded"
         />
         Запретить прошлое
       </label>
@@ -159,156 +145,119 @@ function DateTimeControls({
   )
 }
 
-function IntervalBadge({ interval }: { interval: TimeRange | null }) {
-  if (!interval) return <span className="text-xs text-gray-400">не выбрано</span>
-  return (
-    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-      {interval[0].format('HH:mm')} – {interval[1].format('HH:mm')}
-    </span>
-  )
-}
-
 export default function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>('multi')
-  const [selectedResource, setSelectedResource] = useState(RESOURCES[0].id)
+  const [view, setView] = useState<SchedulerView>('multi-resource')
+  const [activeResourceId, setActiveResourceId] = useState(RESOURCES[0].id)
 
   const [date, setDate] = useState(dayjs())
   const [startHour, setStartHour] = useState(8)
-  const [endHour, setEndHour] = useState(22)
-  const [interval, setIntervalStep] = useState(30)
+  const [endHour, setEndHour] = useState(20)
+  const [interval, setInterval] = useState(30)
   const [disablePast, setDisablePast] = useState(false)
 
-  const [selections, setSelections] = useState<Record<string, TimeRange | null>>({})
+  const [selections, setSelections] = useState<SchedulerSelections>({})
 
-  const startDate = date.hour(startHour).minute(0).second(0)
-  const endDate = date.hour(endHour).minute(0).second(0)
+  // Inject disabledIntervals per resource per date (could come from API)
+  const resources: SchedulerResource[] = RESOURCES.map((r) => ({
+    ...r,
+    disabledIntervals: r.disabled ? undefined : makeDisabled(date),
+  }))
 
-  const handleChange = (resourceId: string) => (range: TimeRange) => {
-    setSelections((prev) => ({ ...prev, [resourceId]: range }))
+  const handleChange = (
+    resourceId: string,
+    rowDate: Dayjs,
+    range: [Dayjs, Dayjs],
+    hasError: boolean,
+  ) => {
+    const key = `${resourceId}:${rowDate.format('YYYY-MM-DD')}`
+    setSelections((prev) => ({ ...prev, [key]: range }))
+    if (hasError) console.warn('interval error', resourceId, range)
   }
-
-  const visibleResources =
-    viewMode === 'single' ? RESOURCES.filter((r) => r.id === selectedResource) : RESOURCES
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-800">TimeLineRange — Playground</h1>
+      <div className="mx-auto max-w-5xl">
+        {/* Toolbar */}
+        <div className="mb-5 flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-gray-800">Scheduler — Playground</h1>
 
-          {/* View toggle */}
           <div className="flex overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <button
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                viewMode === 'single' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-              onClick={() => setViewMode('single')}
-            >
-              Ресурс
-            </button>
-            <button
-              className={`px-4 py-1.5 text-sm font-medium transition-colors ${
-                viewMode === 'multi' ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
-              }`}
-              onClick={() => setViewMode('multi')}
-            >
-              Ресурсы
-            </button>
+            {(['multi-resource', 'single-resource'] as SchedulerView[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                  view === v ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {v === 'multi-resource' ? 'Ресурсы' : 'Ресурс / неделя'}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Resource selector (single mode) */}
-        {viewMode === 'single' && (
-          <div className="mb-4 flex gap-2">
+        {/* Resource selector for single-resource view */}
+        {view === 'single-resource' && (
+          <div className="mb-4 flex flex-wrap gap-2">
             {RESOURCES.map((r) => (
               <button
                 key={r.id}
-                onClick={() => setSelectedResource(r.id)}
+                onClick={() => setActiveResourceId(r.id)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  selectedResource === r.id
+                  activeResourceId === r.id
                     ? 'bg-blue-500 text-white'
                     : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {r.name}
+                {r.label}
               </button>
             ))}
           </div>
         )}
 
-        <DateTimeControls
+        <Controls
           date={date}
           startHour={startHour}
           endHour={endHour}
           interval={interval}
           disablePast={disablePast}
-          onChange={(patch) => {
-            if (patch.date !== undefined) setDate(patch.date)
-            if (patch.startHour !== undefined) setStartHour(patch.startHour)
-            if (patch.endHour !== undefined) setEndHour(patch.endHour)
-            if (patch.interval !== undefined) setIntervalStep(patch.interval)
-            if (patch.disablePast !== undefined) setDisablePast(patch.disablePast)
+          onChange={(p) => {
+            if (p.date !== undefined) setDate(p.date)
+            if (p.startHour !== undefined) setStartHour(p.startHour)
+            if (p.endHour !== undefined) setEndHour(p.endHour)
+            if (p.interval !== undefined) setInterval(p.interval)
+            if (p.disablePast !== undefined) setDisablePast(p.disablePast)
           }}
         />
 
-        {/* Timelines */}
-        <div className="flex flex-col gap-3">
-          {visibleResources.map((resource) => {
-            const disabledIntervals = makeDisabled(date)
-
-            return (
-              <div
-                key={resource.id}
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
-              >
-                <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-sm font-medium text-gray-700">{resource.name}</span>
-                  <div className="flex items-center gap-3">
-                    {resource.disabled && (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400">
-                        недоступен
-                      </span>
-                    )}
-                    <IntervalBadge interval={selections[resource.id] ?? null} />
-                  </div>
-                </div>
-                <div className="px-2 pb-2">
-                  <TimeLineRange
-                    id={resource.id}
-                    startDate={startDate}
-                    endDate={endDate}
-                    selectedInterval={selections[resource.id] ?? null}
-                    disabledIntervals={disabledIntervals}
-                    interval={interval}
-                    minimumInterval={interval}
-                    disabled={resource.disabled}
-                    disablePast={disablePast}
-                    onChange={handleChange(resource.id)}
-                    classNames={{
-                      root: resource.color.root,
-                      selection: resource.color.selection,
-                      resizeHandleLeft: resource.color.handleLeft,
-                      resizeHandleRight: resource.color.handleRight,
-                      disabledInterval: resource.color.disabled,
-                    }}
-                  />
-                </div>
-              </div>
-            )
-          })}
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <Scheduler
+            view={view}
+            date={date}
+            resources={resources}
+            activeResourceId={activeResourceId}
+            selections={selections}
+            onChange={handleChange}
+            startHour={startHour}
+            endHour={endHour}
+            interval={interval}
+            disablePast={disablePast}
+          />
         </div>
 
         {/* Summary */}
-        {Object.entries(selections).some(([, v]) => v !== null) && (
-          <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        {Object.values(selections).some(Boolean) && (
+          <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
             <p className="mb-2 text-sm font-medium text-gray-700">Выбранные интервалы</p>
             <div className="flex flex-col gap-1">
-              {RESOURCES.map((r) => {
-                const sel = selections[r.id]
+              {Object.entries(selections).map(([key, sel]) => {
                 if (!sel) return null
+                const [resId, dateStr] = key.split(':')
+                const res = RESOURCES.find((r) => r.id === resId)
                 return (
-                  <div key={r.id} className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="w-28 text-gray-400">{r.name}</span>
+                  <div key={key} className="flex gap-3 text-sm text-gray-600">
+                    <span className="w-32 truncate text-gray-400">{res?.label ?? resId}</span>
+                    <span className="w-24 text-gray-400">{dateStr}</span>
                     <span>
                       {sel[0].format('HH:mm')} – {sel[1].format('HH:mm')}
                     </span>

@@ -20,9 +20,9 @@ export const TimeSlot: React.FC<TimeSlotProps> = memo(
     return (
       <div
         className={classNames(
-          'box-content h-full min-w-[40px] flex-1 border-r border-white',
+          'h-full min-w-10 flex-1 border-r border-white',
           { 'cursor-pointer': isClickable },
-          isPast && (pastClassName ?? 'cursor-not-allowed bg-red-100'),
+          isPast && (pastClassName ?? ' bg-red-100'),
           className,
         )}
         onClick={() => isClickable && onClick(date)}

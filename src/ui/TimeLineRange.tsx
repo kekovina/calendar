@@ -103,9 +103,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
     const displayInterval = rndState.selectedIntervalPreview || selectedInterval
 
     return (
-      <div
-        className={classNames('h-[65px] w-fit md:w-full', cls?.root ?? 'bg-gray-100', className)}
-      >
+      <div className={classNames('h-[65px] w-full', cls?.root ?? 'bg-gray-100', className)}>
         <div
           className={classNames('relative flex h-full items-center', cls?.track)}
           ref={timeLineRef}
