@@ -37,7 +37,7 @@ type FormState = {
 const RESOURCES: SchedulerResource[] = [
   {
     id: 'room-a',
-    label: 'Зал А',
+    label: 'Hall A',
     classNames: {
       root: 'bg-blue-50',
       selection: 'bg-blue-500',
@@ -48,7 +48,7 @@ const RESOURCES: SchedulerResource[] = [
   },
   {
     id: 'room-b',
-    label: 'Зал Б',
+    label: 'Hall B',
     classNames: {
       root: 'bg-emerald-50',
       selection: 'bg-emerald-500',
@@ -59,13 +59,13 @@ const RESOURCES: SchedulerResource[] = [
   },
   {
     id: 'room-c',
-    label: 'Переговорная',
+    label: 'Meeting Room',
     disabled: true,
     classNames: { root: 'bg-gray-50' },
   },
   {
     id: 'room-d',
-    label: 'Коворкинг',
+    label: 'Coworking',
     classNames: {
       root: 'bg-amber-50',
       selection: 'bg-amber-500',
@@ -88,7 +88,7 @@ function makeBlockedEvents(base: Dayjs): SchedulerEvent[] {
     {
       id: 'blocked-1',
       range: [base.hour(10).minute(0), base.hour(11).minute(30)],
-      label: 'Занято',
+      label: 'Booked',
     },
     { id: 'blocked-2', range: [base.hour(14).minute(0), base.hour(15).minute(0)], label: 'Занято' },
   ]
@@ -152,11 +152,11 @@ function EventForm({
     >
       <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-          <h2 className="text-base font-semibold text-gray-800">Новое событие</h2>
+          <h2 className="text-base font-semibold text-gray-800">New event</h2>
           <button
             onClick={onCancel}
             className="text-gray-400 hover:text-gray-600"
-            aria-label="Закрыть"
+            aria-label="Close"
           >
             ✕
           </button>
@@ -166,13 +166,13 @@ function EventForm({
           {/* Title */}
           <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
             <span>
-              Название <span className="text-red-400">*</span>
+              Title <span className="text-red-400">*</span>
             </span>
             <input
               id={titleId}
               ref={titleRef}
               type="text"
-              placeholder="Введите название события"
+              placeholder="Enter event title"
               value={form.title}
               onChange={(e) => onFormChange({ title: e.target.value })}
               className={inputCls}
@@ -181,7 +181,7 @@ function EventForm({
 
           {/* Resource */}
           <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-            Ресурс
+            Resource
             <select
               value={form.resourceId}
               onChange={(e) => onFormChange({ resourceId: e.target.value })}
@@ -197,7 +197,7 @@ function EventForm({
 
           {/* Date */}
           <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-            Дата
+            Date
             <input
               type="date"
               value={form.date}
@@ -209,7 +209,7 @@ function EventForm({
           {/* Time range */}
           <div className="flex gap-3">
             <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-gray-600">
-              Начало
+              Start
               <input
                 type="time"
                 value={form.startTime}
@@ -218,7 +218,7 @@ function EventForm({
               />
             </label>
             <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-gray-600">
-              Конец
+              End
               <input
                 type="time"
                 value={form.endTime}
@@ -230,7 +230,7 @@ function EventForm({
 
           {/* Validation hint */}
           {form.startTime && form.endTime && !formToDraft(form) && (
-            <p className="text-xs text-red-500">Время окончания должно быть позже начала</p>
+            <p className="text-xs text-red-500">End time must be after start time</p>
           )}
         </div>
 
@@ -239,14 +239,14 @@ function EventForm({
             onClick={onCancel}
             className="rounded-lg border border-gray-200 px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
           >
-            Отмена
+            Cancel
           </button>
           <button
             onClick={onSave}
             disabled={!isValid}
             className="rounded-lg bg-blue-500 px-4 py-1.5 text-sm text-white hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Сохранить
+            Save
           </button>
         </div>
       </div>
@@ -271,7 +271,7 @@ function EventsList({
     <div className="mt-4 rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
         <p className="text-sm font-medium text-gray-700">
-          События{' '}
+          Events{' '}
           <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
             {events.length}
           </span>
@@ -345,7 +345,7 @@ function Controls({
   return (
     <div className="mb-5 flex flex-wrap items-end gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Дата
+        Date
         <input
           type="date"
           value={date.format('YYYY-MM-DD')}
@@ -354,7 +354,7 @@ function Controls({
         />
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Начало (ч)
+        Start (h)
         <input
           type="number"
           min={0}
@@ -365,7 +365,7 @@ function Controls({
         />
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Конец (ч)
+        End (h)
         <input
           type="number"
           min={startHour + 1}
@@ -376,7 +376,7 @@ function Controls({
         />
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Шаг (мин)
+        Step (min)
         <select
           value={interval}
           onChange={(e) => onChange({ interval: Number(e.target.value) })}
@@ -390,7 +390,7 @@ function Controls({
         </select>
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium text-gray-600">
-        Мин. длительность (мин)
+        Min duration (min)
         <select
           value={minimumInterval}
           onChange={(e) => onChange({ minimumInterval: Number(e.target.value) })}
@@ -410,7 +410,7 @@ function Controls({
           onChange={(e) => onChange({ disablePast: e.target.checked })}
           className="h-4 w-4 rounded"
         />
-        Запретить прошлое
+        Disable past
       </label>
     </div>
   )
@@ -568,7 +568,7 @@ export default function App() {
               }}
               className="rounded-lg bg-blue-500 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-600"
             >
-              + Событие
+              + Event
             </button>
             <div className="flex overflow-hidden rounded-lg border border-gray-200 bg-white">
               {(['multi-resource', 'single-resource'] as SchedulerView[]).map((v) => (
@@ -579,7 +579,7 @@ export default function App() {
                     view === v ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  {v === 'multi-resource' ? 'Ресурсы' : 'Неделя'}
+                  {v === 'multi-resource' ? 'Resources' : 'Week'}
                 </button>
               ))}
             </div>
