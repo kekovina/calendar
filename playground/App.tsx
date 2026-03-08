@@ -101,13 +101,6 @@ function selectionKey(resourceId: string, date: Dayjs) {
   return `${resourceId}:${date.format('YYYY-MM-DD')}`
 }
 
-function rangeToTimes(range: TimeRange): { startTime: string; endTime: string } {
-  return {
-    startTime: range[0].format('HH:mm'),
-    endTime: range[1].format('HH:mm'),
-  }
-}
-
 function formToDraft(form: FormState): TimeRange | null {
   if (!form.date || !form.startTime || !form.endTime) return null
   const base = dayjs(form.date)
@@ -648,12 +641,18 @@ export default function App() {
             activeResourceId={activeResourceId}
             selections={selections}
             onChange={handleSchedulerChange}
+            onCrossDrag={(from, to, range) => {
+              const fromKey = selectionKey(from.resourceId, from.date)
+              const toKey = selectionKey(to.resourceId, to.date)
+              setSelections((prev) => ({ ...prev, [fromKey]: null, [toKey]: range }))
+            }}
             startHour={startHour}
             endHour={endHour}
             interval={interval}
             minimumInterval={minimumInterval}
             disablePast={disablePast}
             direction={direction}
+            crossDrag
           />
         </div>
 

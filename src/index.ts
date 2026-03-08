@@ -9,5 +9,6 @@ export type {
   SchedulerResource,
   SchedulerSelections,
   SchedulerDirection,
+  CrossDragPayload,
 } from './types'
 export type { TimeLineHeaderProps } from './components/TimeLineHeader/TimeLineHeader'

@@ -21,6 +21,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       selectedInterval,
       events = [],
       onChange,
+      onCrossDragDrop,
       minimumInterval = 30,
       startDate = dayjs().startOf('day'),
       endDate = dayjs().endOf('day'),
@@ -29,6 +30,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       interval = 30,
       fixedDuration,
       direction = 'horizontal',
+      crossDragEnabled = false,
       debug = false,
       className,
       classNames: cls,
@@ -85,8 +87,10 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       boundsStart,
       boundsEnd,
       direction,
+      crossDragEnabled,
       validateInterval,
       onChange,
+      onCrossDragDrop,
       onError: setIsError,
       updatePosition: rndState.updatePosition,
       updateWidth: rndState.updateWidth,
@@ -171,6 +175,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               isSmallCarret={isSmallCarret}
               gridSize={slotSize}
               direction={direction}
+              crossDragEnabled={crossDragEnabled}
               disableResize={!!fixedDuration}
               onDrag={rndHandlers.handleDrag}
               onDragStop={rndHandlers.handleDragStop}

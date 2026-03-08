@@ -4,6 +4,7 @@ import tsParser from '@typescript-eslint/parser'
 import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import prettierConfig from 'eslint-config-prettier'
+import globals from 'globals'
 
 export default [
   {
@@ -11,8 +12,11 @@ export default [
   },
   js.configs.recommended,
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'playground/**/*.{ts,tsx}'],
     languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
       parser: tsParser,
       parserOptions: {
         project: './tsconfig.app.json',

@@ -12,8 +12,10 @@ type UseRndHandlersProps = {
   boundsStart?: Dayjs
   boundsEnd?: Dayjs
   direction?: SchedulerDirection
+  crossDragEnabled?: boolean
   validateInterval: (start: Dayjs, end: Dayjs) => boolean
   onChange?: (range: TimeRange, hasError: boolean) => void
+  onCrossDragDrop?: (clientX: number, clientY: number, range: TimeRange) => void
   onError: (error: boolean) => void
   updatePosition: (v: number) => void
   updateWidth: (v: number) => void
@@ -50,8 +52,10 @@ export function useRndHandlers({
   boundsStart,
   boundsEnd,
   direction = 'horizontal',
+  crossDragEnabled = false,
   validateInterval,
   onChange,
+  onCrossDragDrop,
   onError,
   updatePosition,
   updateWidth,
@@ -109,6 +113,22 @@ export function useRndHandlers({
       const newStart = startDate.clone().add(newStartIndex * interval, 'minute')
       const newEnd = newStart.clone().add(duration, 'minute')
 
+      // Cross-timeline drag: check if cursor left the current timeline's bounds
+      if (crossDragEnabled && onCrossDragDrop) {
+        const evt = _e as MouseEvent
+        const clientX = evt.clientX
+        const clientY = evt.clientY
+        const rect = timeLineRef.current.getBoundingClientRect()
+        const isOutside = isVertical
+          ? clientX < rect.left || clientX > rect.right
+          : clientY < rect.top || clientY > rect.bottom
+        if (isOutside) {
+          onCrossDragDrop(clientX, clientY, [newStart, newEnd])
+          clearPreview()
+          return
+        }
+      }
+
       const hasError = validateInterval(newStart, newEnd)
       onError(hasError)
       onChange?.([newStart, newEnd], hasError)
@@ -124,8 +144,10 @@ export function useRndHandlers({
       boundsEnd,
       direction,
       isVertical,
+      crossDragEnabled,
       validateInterval,
       onChange,
+      onCrossDragDrop,
       onError,
       updatePosition,
       clearPreview,

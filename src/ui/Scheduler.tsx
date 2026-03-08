@@ -1,8 +1,8 @@
 import classNames from 'classnames'
 import type dayjs from 'dayjs'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
-import type { SchedulerProps, SchedulerResource } from '../types'
+import type { SchedulerProps, SchedulerResource, TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
 
 const LABEL_WIDTH = 'w-28 shrink-0'
@@ -26,6 +26,7 @@ export function Scheduler({
   activeResourceId,
   selections = {},
   onChange,
+  onCrossDrag,
   startHour = 0,
   endHour = 24,
   interval = 30,
@@ -34,6 +35,7 @@ export function Scheduler({
   disabled = false,
   disablePast = false,
   direction = 'horizontal',
+  crossDrag = false,
   debug = false,
   className,
   classNames: cls,
@@ -70,6 +72,30 @@ export function Scheduler({
     }))
   }, [view, date, resources, activeResourceId])
 
+  // ─── Cross-timeline drag handler ──────────────────────────────────────────
+  const handleCrossDragDrop = useCallback(
+    (sourceKey: string, clientX: number, clientY: number, range: TimeRange) => {
+      const elements = document.elementsFromPoint(clientX, clientY)
+      for (const el of elements) {
+        const rowEl = el.closest('[data-scheduler-key]')
+        if (!rowEl) continue
+        const targetKey = rowEl.getAttribute('data-scheduler-key')
+        if (!targetKey || targetKey === sourceKey) continue
+        const sourceRow = rows.find((r) => r.key === sourceKey)
+        const targetRow = rows.find((r) => r.key === targetKey)
+        if (sourceRow && targetRow) {
+          onCrossDrag?.(
+            { resourceId: sourceRow.resource.id, date: sourceRow.date },
+            { resourceId: targetRow.resource.id, date: targetRow.date },
+            range,
+          )
+        }
+        return
+      }
+    },
+    [rows, onCrossDrag],
+  )
+
   // ─── Horizontal layout ────────────────────────────────────────────────────
   if (direction === 'horizontal') {
     return (
@@ -93,7 +119,7 @@ export function Scheduler({
             const rowEvents = row.resource.events ?? []
 
             return (
-              <div key={row.key} className="flex items-center">
+              <div key={row.key} className="flex items-center" data-scheduler-key={row.key}>
                 <div
                   className={classNames(
                     LABEL_WIDTH,
@@ -121,12 +147,16 @@ export function Scheduler({
                     disabled={rowDisabled}
                     disablePast={disablePast}
                     direction="horizontal"
+                    crossDragEnabled={crossDrag && !rowDisabled}
                     debug={debug}
                     classNames={mergedClassNames}
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
                     onChange={(range, hasError) =>
                       onChange?.(row.resource.id, row.date, range, hasError)
+                    }
+                    onCrossDragDrop={(clientX, clientY, range) =>
+                      handleCrossDragDrop(row.key, clientX, clientY, range)
                     }
                   />
                 </div>
@@ -165,7 +195,11 @@ export function Scheduler({
           const rowEvents = row.resource.events ?? []
 
           return (
-            <div key={row.key} className="flex flex-col flex-1 min-w-[80px]">
+            <div
+              key={row.key}
+              className="flex flex-col flex-1 min-w-[80px]"
+              data-scheduler-key={row.key}
+            >
               {/* Column header (resource label) */}
               <div
                 className={classNames(
@@ -193,12 +227,16 @@ export function Scheduler({
                 disabled={rowDisabled}
                 disablePast={disablePast}
                 direction="vertical"
+                crossDragEnabled={crossDrag && !rowDisabled}
                 debug={debug}
                 classNames={mergedClassNames}
                 renderResizeHandle={renderResizeHandle}
                 renderIntervalContent={renderIntervalContent}
                 onChange={(range, hasError) =>
                   onChange?.(row.resource.id, row.date, range, hasError)
+                }
+                onCrossDragDrop={(clientX, clientY, range) =>
+                  handleCrossDragDrop(row.key, clientX, clientY, range)
                 }
               />
             </div>
