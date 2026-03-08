@@ -46,7 +46,8 @@ export const computeIntervalByPosition = (
   const slotSize = getSlotSize(timeLineRef, direction)
   const slotIndex = Math.round(position / slotSize)
   const slotStart = startDate.clone().add(slotIndex * step, 'minute')
-  const slotEnd = slotStart.clone().add((size / slotSize) * step, 'minute')
+  const durationMinutes = Math.round((size / slotSize) * step)
+  const slotEnd = slotStart.clone().add(durationMinutes, 'minute')
   return [slotStart, slotEnd]
 }
 
