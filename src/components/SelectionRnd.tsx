@@ -20,6 +20,7 @@ type SelectionRndProps = {
   gridSize: number
   direction?: SchedulerDirection
   crossDragEnabled?: boolean
+  crossDragBounds?: string
   onDrag: RndDragCallback
   onDragStop: RndDragCallback
   onResize: RndResizeCallback
@@ -44,6 +45,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
   gridSize,
   direction = 'horizontal',
   crossDragEnabled = false,
+  crossDragBounds,
   onDrag,
   onDragStop,
   onResize,
@@ -61,7 +63,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
     <Rnd
       size={{ width, height }}
       position={{ x: posX, y: posY }}
-      bounds={crossDragEnabled ? undefined : 'parent'}
+      bounds={crossDragEnabled ? (crossDragBounds ?? 'body') : 'parent'}
       enableResizing={
         isVertical
           ? { top: !disableResize, bottom: !disableResize, left: false, right: false }

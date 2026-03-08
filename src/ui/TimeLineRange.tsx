@@ -31,6 +31,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       fixedDuration,
       direction = 'horizontal',
       crossDragEnabled = false,
+      crossDragBounds,
       debug = false,
       className,
       classNames: cls,
@@ -96,6 +97,8 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       updateWidth: rndState.updateWidth,
       updatePreview: rndState.updatePreview,
       clearPreview: rndState.clearPreview,
+      updateCrossCompensation: rndState.updateCrossCompensation,
+      clearCrossCompensation: rndState.clearCrossCompensation,
     })
 
     const eventBlocks = useDisabledIntervals({
@@ -168,24 +171,36 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
           ))}
 
           {shouldShowSelection && internalRef.current && (
-            <SelectionRnd
-              {...selectionProps}
-              isError={isError}
-              interval={displayInterval!}
-              isSmallCarret={isSmallCarret}
-              gridSize={slotSize}
-              direction={direction}
-              crossDragEnabled={crossDragEnabled}
-              disableResize={!!fixedDuration}
-              onDrag={rndHandlers.handleDrag}
-              onDragStop={rndHandlers.handleDragStop}
-              onResize={rndHandlers.handleResize}
-              onResizeStop={rndHandlers.handleResizeStop}
-              carretRef={carretRef}
-              classNames={cls}
-              renderResizeHandle={renderResizeHandle}
-              renderIntervalContent={renderIntervalContent}
-            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                pointerEvents: 'none',
+                transform: isVertical
+                  ? `translateX(${rndState.crossCompensation}px)`
+                  : `translateY(${rndState.crossCompensation}px)`,
+              }}
+            >
+              <SelectionRnd
+                {...selectionProps}
+                isError={isError}
+                interval={displayInterval!}
+                isSmallCarret={isSmallCarret}
+                gridSize={slotSize}
+                direction={direction}
+                crossDragEnabled={crossDragEnabled}
+                crossDragBounds={crossDragBounds}
+                disableResize={!!fixedDuration}
+                onDrag={rndHandlers.handleDrag}
+                onDragStop={rndHandlers.handleDragStop}
+                onResize={rndHandlers.handleResize}
+                onResizeStop={rndHandlers.handleResizeStop}
+                carretRef={carretRef}
+                classNames={cls}
+                renderResizeHandle={renderResizeHandle}
+                renderIntervalContent={renderIntervalContent}
+              />
+            </div>
           )}
 
           {intervalArray.slice(0, -1).map((date) => (

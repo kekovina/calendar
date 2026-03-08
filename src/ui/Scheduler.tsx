@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import type dayjs from 'dayjs'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useId, useMemo } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
 import type { SchedulerProps, SchedulerResource, TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
@@ -43,6 +43,11 @@ export function Scheduler({
   renderIntervalContent,
   renderRowLabel,
 }: SchedulerProps) {
+  const rawId = useId()
+  // useId may produce colons which are invalid in CSS id selectors — strip them
+  const containerId = `sch-${rawId.replace(/:/g, '')}`
+  const crossDragBounds = crossDrag ? `#${containerId}` : undefined
+
   const startDate = date.hour(startHour).minute(0).second(0).millisecond(0)
   const endDate = date.hour(endHour).minute(0).second(0).millisecond(0)
 
@@ -99,7 +104,7 @@ export function Scheduler({
   // ─── Horizontal layout ────────────────────────────────────────────────────
   if (direction === 'horizontal') {
     return (
-      <div className={classNames('overflow-x-auto', className)}>
+      <div id={containerId} className={classNames('overflow-x-auto', className)}>
         <div className="flex min-w-fit flex-col gap-1">
           {/* Header row */}
           <div className="flex">
@@ -148,6 +153,7 @@ export function Scheduler({
                     disablePast={disablePast}
                     direction="horizontal"
                     crossDragEnabled={crossDrag && !rowDisabled}
+                    crossDragBounds={crossDragBounds}
                     debug={debug}
                     classNames={mergedClassNames}
                     renderResizeHandle={renderResizeHandle}
@@ -171,7 +177,7 @@ export function Scheduler({
   // ─── Vertical layout ──────────────────────────────────────────────────────
   // Resources as columns, time axis on the left
   return (
-    <div className={classNames('overflow-x-auto', className)}>
+    <div id={containerId} className={classNames('overflow-x-auto', className)}>
       <div className="flex min-w-fit">
         {/* Time axis column */}
         <div className="flex flex-col shrink-0">

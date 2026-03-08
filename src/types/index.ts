@@ -45,6 +45,8 @@ export type TimeLineRangeProps = {
   direction?: SchedulerDirection
   /** Allow dragging the selection into adjacent timelines. */
   crossDragEnabled?: boolean
+  /** CSS selector for the element that constrains cross-timeline drag bounds. */
+  crossDragBounds?: string
   debug?: boolean
   className?: string
   classNames?: SchedulerClassNames

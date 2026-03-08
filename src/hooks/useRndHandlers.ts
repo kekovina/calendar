@@ -21,6 +21,8 @@ type UseRndHandlersProps = {
   updateWidth: (v: number) => void
   updatePreview: (preview: TimeRange | null) => void
   clearPreview: () => void
+  updateCrossCompensation: (v: number) => void
+  clearCrossCompensation: () => void
 }
 
 function clampPos(
@@ -61,6 +63,8 @@ export function useRndHandlers({
   updateWidth,
   updatePreview,
   clearPreview,
+  updateCrossCompensation,
+  clearCrossCompensation,
 }: UseRndHandlersProps) {
   const isVertical = direction === 'vertical'
 
@@ -85,6 +89,14 @@ export function useRndHandlers({
         direction,
       )
       updatePreview(currentInterval)
+
+      if (crossDragEnabled) {
+        const rect = timeLineRef.current.getBoundingClientRect()
+        const rawCross = isVertical ? data.x : data.y
+        const crossAxisSize = isVertical ? rect.width : rect.height
+        const clamped = Math.abs(rawCross) > crossAxisSize * 0.4 ? rawCross : 0
+        updateCrossCompensation(clamped - rawCross)
+      }
     },
     [
       timeLineRef,
@@ -95,7 +107,9 @@ export function useRndHandlers({
       boundsEnd,
       direction,
       isVertical,
+      crossDragEnabled,
       updatePreview,
+      updateCrossCompensation,
     ],
   )
 
@@ -113,18 +127,16 @@ export function useRndHandlers({
       const newStart = startDate.clone().add(newStartIndex * interval, 'minute')
       const newEnd = newStart.clone().add(duration, 'minute')
 
-      // Cross-timeline drag: check if cursor left the current timeline's bounds
+      // Cross-timeline drag: activate only when cross-axis displacement exceeds 40% of container size
       if (crossDragEnabled && onCrossDragDrop) {
-        const evt = _e as MouseEvent
-        const clientX = evt.clientX
-        const clientY = evt.clientY
         const rect = timeLineRef.current.getBoundingClientRect()
-        const isOutside = isVertical
-          ? clientX < rect.left || clientX > rect.right
-          : clientY < rect.top || clientY > rect.bottom
-        if (isOutside) {
-          onCrossDragDrop(clientX, clientY, [newStart, newEnd])
+        const crossAxisDisplacement = Math.abs(isVertical ? data.x : data.y)
+        const crossAxisSize = isVertical ? rect.width : rect.height
+        if (crossAxisDisplacement > crossAxisSize * 0.4) {
+          const evt = _e as MouseEvent
+          onCrossDragDrop(evt.clientX, evt.clientY, [newStart, newEnd])
           clearPreview()
+          clearCrossCompensation()
           return
         }
       }
@@ -134,6 +146,7 @@ export function useRndHandlers({
       onChange?.([newStart, newEnd], hasError)
       updatePosition(pos)
       clearPreview()
+      clearCrossCompensation()
     },
     [
       timeLineRef,
@@ -151,6 +164,7 @@ export function useRndHandlers({
       onError,
       updatePosition,
       clearPreview,
+      clearCrossCompensation,
     ],
   )
 
