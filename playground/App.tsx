@@ -90,7 +90,7 @@ function makeBlockedEvents(base: Dayjs): SchedulerEvent[] {
       range: [base.hour(10).minute(0), base.hour(11).minute(30)],
       label: 'Booked',
     },
-    { id: 'blocked-2', range: [base.hour(14).minute(0), base.hour(15).minute(0)], label: 'Занято' },
+    { id: 'blocked-2', range: [base.hour(14).minute(0), base.hour(15).minute(0)], label: 'Booked' },
   ]
 }
 
@@ -523,7 +523,7 @@ export default function App() {
     setEvents((prev) => prev.filter((e) => e.id !== id))
   }
 
-  // Slot click: pre-fill form from timeline selection
+  // Slot click: update selection on timeline without opening the form
   const handleSchedulerChange = (
     resourceId: string,
     rowDate: Dayjs,
@@ -532,12 +532,6 @@ export default function App() {
   ) => {
     const key = selectionKey(resourceId, rowDate)
     setSelections((prev) => ({ ...prev, [key]: range }))
-    editingIdRef.current = null
-    openForm({
-      resourceId,
-      date: rowDate.format('YYYY-MM-DD'),
-      ...rangeToTimes(range),
-    })
   }
 
   // Saved events mapped to SchedulerEvent per resource
