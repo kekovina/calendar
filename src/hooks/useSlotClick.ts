@@ -1,7 +1,7 @@
 import dayjs, { type Dayjs } from 'dayjs'
 import { type RefObject, useCallback } from 'react'
-import type { TimeRange } from '../types'
-import { getSlotPosition, getSlotWidth } from '../utils'
+import type { SchedulerDirection, TimeRange } from '../types'
+import { getSlotPosition, getSlotSize } from '../utils'
 
 type UseSlotClickProps = {
   disabled: boolean
@@ -11,12 +11,13 @@ type UseSlotClickProps = {
   endDate: Dayjs
   interval: number
   fixedDuration?: number
+  direction?: SchedulerDirection
   timeLineRef: RefObject<HTMLDivElement | null>
   validateInterval: (start: Dayjs, end: Dayjs) => boolean
   onChange?: (range: TimeRange, hasError: boolean) => void
   onError: (error: boolean) => void
-  updatePosition: (x: number) => void
-  updateWidth: (w: number) => void
+  updatePosition: (v: number) => void
+  updateWidth: (v: number) => void
 }
 
 export function useSlotClick({
@@ -27,6 +28,7 @@ export function useSlotClick({
   endDate,
   interval,
   fixedDuration,
+  direction = 'horizontal',
   timeLineRef,
   validateInterval,
   onChange,
@@ -57,9 +59,9 @@ export function useSlotClick({
       ]
       onChange?.(normalizedRange, hasError)
 
-      const slotWidth = getSlotWidth(timeLineRef.current)
-      updatePosition(getSlotPosition(timeLineRef.current, date, startDate, interval))
-      updateWidth(slotWidth * (duration / interval))
+      const slotSize = getSlotSize(timeLineRef.current, direction)
+      updatePosition(getSlotPosition(timeLineRef.current, date, startDate, interval, direction))
+      updateWidth(slotSize * (duration / interval))
     },
     [
       disabled,
@@ -69,6 +71,7 @@ export function useSlotClick({
       endDate,
       interval,
       fixedDuration,
+      direction,
       timeLineRef,
       validateInterval,
       onChange,

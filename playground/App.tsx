@@ -4,6 +4,7 @@ import localeData from 'dayjs/plugin/localeData'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Scheduler } from '../src'
 import type {
+  SchedulerDirection,
   SchedulerEvent,
   SchedulerResource,
   SchedulerSelections,
@@ -320,6 +321,7 @@ function Controls({
   interval,
   minimumInterval,
   disablePast,
+  direction,
   onChange,
 }: {
   date: Dayjs
@@ -328,6 +330,7 @@ function Controls({
   interval: number
   minimumInterval: number
   disablePast: boolean
+  direction: SchedulerDirection
   onChange: (
     p: Partial<{
       date: Dayjs
@@ -336,6 +339,7 @@ function Controls({
       interval: number
       minimumInterval: number
       disablePast: boolean
+      direction: SchedulerDirection
     }>,
   ) => void
 }) {
@@ -412,6 +416,15 @@ function Controls({
         />
         Disable past
       </label>
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-600">
+        <input
+          type="checkbox"
+          checked={direction === 'vertical'}
+          onChange={(e) => onChange({ direction: e.target.checked ? 'vertical' : 'horizontal' })}
+          className="h-4 w-4 rounded"
+        />
+        Vertical
+      </label>
     </div>
   )
 }
@@ -436,6 +449,7 @@ export default function App() {
   const [interval, setIntervalStep] = useState(30)
   const [minimumInterval, setMinimumInterval] = useState(30)
   const [disablePast, setDisablePast] = useState(false)
+  const [direction, setDirection] = useState<SchedulerDirection>('horizontal')
 
   const [selections, setSelections] = useState<SchedulerSelections>({})
   const [events, setEvents] = useState<AppEvent[]>([])
@@ -606,6 +620,7 @@ export default function App() {
           interval={interval}
           minimumInterval={minimumInterval}
           disablePast={disablePast}
+          direction={direction}
           onChange={(p) => {
             if (p.date !== undefined) setDate(p.date)
             if (p.startHour !== undefined) setStartHour(p.startHour)
@@ -617,11 +632,11 @@ export default function App() {
               )
             }
             if (p.minimumInterval !== undefined) {
-              // Snap to the nearest multiple of current interval
               const step = interval
               setMinimumInterval(Math.max(step, Math.round(p.minimumInterval / step) * step))
             }
             if (p.disablePast !== undefined) setDisablePast(p.disablePast)
+            if (p.direction !== undefined) setDirection(p.direction)
           }}
         />
 
@@ -638,6 +653,7 @@ export default function App() {
             interval={interval}
             minimumInterval={minimumInterval}
             disablePast={disablePast}
+            direction={direction}
           />
         </div>
 

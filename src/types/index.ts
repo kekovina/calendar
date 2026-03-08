@@ -22,6 +22,8 @@ export type SchedulerClassNames = {
   eventBlock?: string
 }
 
+export type SchedulerDirection = 'horizontal' | 'vertical'
+
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
@@ -38,6 +40,7 @@ export type TimeLineRangeProps = {
   fixedDuration?: number
   disabled?: boolean
   disablePast?: boolean
+  direction?: SchedulerDirection
   debug?: boolean
   className?: string
   classNames?: SchedulerClassNames
@@ -75,6 +78,7 @@ export type SchedulerProps = {
   fixedDuration?: number
   disabled?: boolean
   disablePast?: boolean
+  direction?: SchedulerDirection
   debug?: boolean
   className?: string
   classNames?: SchedulerClassNames

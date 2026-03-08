@@ -1,36 +1,43 @@
 import type { Dayjs } from 'dayjs'
 import type { RefObject } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import type { SchedulerEvent } from '../types'
-import { computeIntervalCssStyles, getSlotWidth } from '../utils'
+import type { SchedulerDirection, SchedulerEvent } from '../types'
+import { computeIntervalCssStyles, getSlotSize } from '../utils'
 
 type UseEventsProps = {
   events: SchedulerEvent[]
   timeLineRef: RefObject<HTMLDivElement | null>
   interval: number
   startDate: Dayjs
+  direction?: SchedulerDirection
 }
 
-export function useDisabledIntervals({ events, timeLineRef, interval, startDate }: UseEventsProps) {
-  const [slotWidth, setSlotWidth] = useState(0)
+export function useDisabledIntervals({
+  events,
+  timeLineRef,
+  interval,
+  startDate,
+  direction = 'horizontal',
+}: UseEventsProps) {
+  const [slotSize, setSlotSize] = useState(0)
 
   useEffect(() => {
     if (!timeLineRef.current) return
 
-    const updateSlotWidth = () => {
-      const width = getSlotWidth(timeLineRef.current)
-      if (width > 0) setSlotWidth(width)
+    const update = () => {
+      const size = getSlotSize(timeLineRef.current, direction)
+      if (size > 0) setSlotSize(size)
     }
 
-    updateSlotWidth()
+    update()
 
-    const observer = new ResizeObserver(updateSlotWidth)
+    const observer = new ResizeObserver(update)
     observer.observe(timeLineRef.current)
     return () => observer.disconnect()
-  }, [timeLineRef])
+  }, [timeLineRef, direction])
 
   return useMemo(() => {
-    if (!timeLineRef.current || slotWidth === 0) return []
+    if (!timeLineRef.current || slotSize === 0) return []
 
     const dayStart = startDate.startOf('day')
     const dayEnd = startDate.endOf('day')
@@ -49,16 +56,17 @@ export function useDisabledIntervals({ events, timeLineRef, interval, startDate 
           timeLineRef: timeLineRef.current,
           step: interval,
           startDate,
+          direction,
         })
 
         return {
           id: event.id ?? `${start.valueOf()}-${end.valueOf()}`,
-          left: styles.x,
-          width: styles.width,
+          position: styles.position,
+          size: styles.size,
           label: event.label,
           className: event.className,
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
-  }, [events, timeLineRef, interval, startDate, slotWidth])
+  }, [events, timeLineRef, interval, startDate, slotSize, direction])
 }

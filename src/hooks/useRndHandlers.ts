@@ -1,8 +1,8 @@
 import { type Dayjs } from 'dayjs'
 import { type RefObject, useCallback } from 'react'
 import type { DraggableData, RndDragCallback, RndResizeCallback } from 'react-rnd'
-import type { TimeRange } from '../types'
-import { computeIntervalByPosition, getSlotWidth } from '../utils'
+import type { SchedulerDirection, TimeRange } from '../types'
+import { computeIntervalByPosition, getSlotSize } from '../utils'
 
 type UseRndHandlersProps = {
   timeLineRef: RefObject<HTMLDivElement | null>
@@ -11,32 +11,33 @@ type UseRndHandlersProps = {
   selectedInterval: TimeRange | null
   boundsStart?: Dayjs
   boundsEnd?: Dayjs
+  direction?: SchedulerDirection
   validateInterval: (start: Dayjs, end: Dayjs) => boolean
   onChange?: (range: TimeRange, hasError: boolean) => void
   onError: (error: boolean) => void
-  updatePosition: (x: number) => void
-  updateWidth: (w: number) => void
+  updatePosition: (v: number) => void
+  updateWidth: (v: number) => void
   updatePreview: (preview: TimeRange | null) => void
   clearPreview: () => void
 }
 
-function clampX(
-  x: number,
-  blockWidth: number,
+function clampPos(
+  pos: number,
+  blockSize: number,
   boundsStart: Dayjs | undefined,
   boundsEnd: Dayjs | undefined,
   startDate: Dayjs,
   interval: number,
-  slotWidth: number,
+  slotSize: number,
 ): number {
-  let clamped = x
+  let clamped = pos
   if (boundsStart) {
-    const minX = (boundsStart.diff(startDate, 'minute') / interval) * slotWidth
-    clamped = Math.max(clamped, minX)
+    const min = (boundsStart.diff(startDate, 'minute') / interval) * slotSize
+    clamped = Math.max(clamped, min)
   }
   if (boundsEnd) {
-    const maxX = (boundsEnd.diff(startDate, 'minute') / interval) * slotWidth - blockWidth
-    clamped = Math.min(clamped, maxX)
+    const max = (boundsEnd.diff(startDate, 'minute') / interval) * slotSize - blockSize
+    clamped = Math.min(clamped, max)
   }
   return clamped
 }
@@ -48,6 +49,7 @@ export function useRndHandlers({
   selectedInterval,
   boundsStart,
   boundsEnd,
+  direction = 'horizontal',
   validateInterval,
   onChange,
   onError,
@@ -56,46 +58,61 @@ export function useRndHandlers({
   updatePreview,
   clearPreview,
 }: UseRndHandlersProps) {
+  const isVertical = direction === 'vertical'
+
   const handleDrag: RndDragCallback = useCallback(
     (_e, data: DraggableData) => {
       if (!timeLineRef.current) return
 
-      const slotWidth = getSlotWidth(timeLineRef.current)
+      const slotSize = getSlotSize(timeLineRef.current, direction)
       const duration = selectedInterval
         ? selectedInterval[1].diff(selectedInterval[0], 'minute')
         : 0
-      const width = (duration / interval) * slotWidth
-      const x = clampX(data.x, width, boundsStart, boundsEnd, startDate, interval, slotWidth)
+      const blockSize = (duration / interval) * slotSize
+      const rawPos = isVertical ? data.y : data.x
+      const pos = clampPos(rawPos, blockSize, boundsStart, boundsEnd, startDate, interval, slotSize)
 
       const currentInterval = computeIntervalByPosition(
         timeLineRef.current,
-        x,
-        width,
+        pos,
+        blockSize,
         startDate,
         interval,
+        direction,
       )
       updatePreview(currentInterval)
     },
-    [timeLineRef, startDate, interval, selectedInterval, boundsStart, boundsEnd, updatePreview],
+    [
+      timeLineRef,
+      startDate,
+      interval,
+      selectedInterval,
+      boundsStart,
+      boundsEnd,
+      direction,
+      isVertical,
+      updatePreview,
+    ],
   )
 
   const handleDragStop: RndDragCallback = useCallback(
     (_e, data: DraggableData) => {
       if (!timeLineRef.current || !selectedInterval) return
 
-      const slotWidth = getSlotWidth(timeLineRef.current)
+      const slotSize = getSlotSize(timeLineRef.current, direction)
       const duration = selectedInterval[1].diff(selectedInterval[0], 'minute')
-      const width = (duration / interval) * slotWidth
-      const x = clampX(data.x, width, boundsStart, boundsEnd, startDate, interval, slotWidth)
+      const blockSize = (duration / interval) * slotSize
+      const rawPos = isVertical ? data.y : data.x
+      const pos = clampPos(rawPos, blockSize, boundsStart, boundsEnd, startDate, interval, slotSize)
 
-      const newStartIndex = Math.round(x / slotWidth)
+      const newStartIndex = Math.round(pos / slotSize)
       const newStart = startDate.clone().add(newStartIndex * interval, 'minute')
       const newEnd = newStart.clone().add(duration, 'minute')
 
       const hasError = validateInterval(newStart, newEnd)
       onError(hasError)
       onChange?.([newStart, newEnd], hasError)
-      updatePosition(x)
+      updatePosition(pos)
       clearPreview()
     },
     [
@@ -105,6 +122,8 @@ export function useRndHandlers({
       selectedInterval,
       boundsStart,
       boundsEnd,
+      direction,
+      isVertical,
       validateInterval,
       onChange,
       onError,
@@ -117,40 +136,52 @@ export function useRndHandlers({
     (_e, _dir, ref, _delta, position) => {
       if (!timeLineRef.current) return
 
+      const rect = ref.getBoundingClientRect()
+      const pos = isVertical ? position.y : position.x
+      const blockSize = isVertical ? rect.height : rect.width
+
       const currentInterval = computeIntervalByPosition(
         timeLineRef.current,
-        position.x,
-        ref.getBoundingClientRect().width,
+        pos,
+        blockSize,
         startDate,
         interval,
+        direction,
       )
       updatePreview(currentInterval)
     },
-    [timeLineRef, startDate, interval, updatePreview],
+    [timeLineRef, startDate, interval, direction, isVertical, updatePreview],
   )
 
   const handleResizeStop: RndResizeCallback = useCallback(
     (_e, _dir, ref, _delta, position) => {
       if (!timeLineRef.current) return
 
-      const slotWidth = getSlotWidth(timeLineRef.current)
-      const newStartIndex = Math.round(position.x / slotWidth)
+      const slotSize = getSlotSize(timeLineRef.current, direction)
+      const pos = isVertical ? position.y : position.x
+      const newStartIndex = Math.round(pos / slotSize)
       const newStart = startDate.clone().add(newStartIndex * interval, 'minute')
 
-      const newWidthInMinutes = Math.round((ref.offsetWidth / slotWidth) * interval)
-      const newEnd = newStart.clone().add(newWidthInMinutes, 'minute')
+      const offsetSize = isVertical ? ref.offsetHeight : ref.offsetWidth
+      const rectSize = isVertical
+        ? ref.getBoundingClientRect().height
+        : ref.getBoundingClientRect().width
+      const newSizeInMinutes = Math.round((offsetSize / slotSize) * interval)
+      const newEnd = newStart.clone().add(newSizeInMinutes, 'minute')
 
       const hasError = validateInterval(newStart, newEnd)
       onError(hasError)
       onChange?.([newStart, newEnd], hasError)
-      updateWidth(ref.getBoundingClientRect().width)
-      updatePosition(position.x)
+      updateWidth(rectSize)
+      updatePosition(pos)
       clearPreview()
     },
     [
       timeLineRef,
       startDate,
       interval,
+      direction,
+      isVertical,
       validateInterval,
       onChange,
       onError,

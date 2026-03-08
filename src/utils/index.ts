@@ -1,11 +1,6 @@
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import type { TimeRange } from '../types'
-
-interface IntervalStyles {
-  x: number
-  width: number
-}
+import type { SchedulerDirection, TimeRange } from '../types'
 
 export const generateDateArray = (
   start: string | Dayjs,
@@ -25,32 +20,33 @@ export const generateDateArray = (
   return dates
 }
 
-export const getSlotWidth = (timeLineRef: HTMLDivElement | null) => {
-  if (!timeLineRef?.childNodes?.length) {
-    return 0
-  }
-  const slotWidth = (
-    timeLineRef.childNodes[timeLineRef.childNodes.length - 1] as HTMLElement
-  ).getBoundingClientRect().width
-  return slotWidth
+export const getSlotSize = (
+  timeLineRef: HTMLDivElement | null,
+  direction: SchedulerDirection = 'horizontal',
+): number => {
+  if (!timeLineRef?.childNodes?.length) return 0
+  const lastChild = timeLineRef.childNodes[timeLineRef.childNodes.length - 1] as HTMLElement
+  const rect = lastChild.getBoundingClientRect()
+  return direction === 'vertical' ? rect.height : rect.width
 }
+
+/** @deprecated use getSlotSize */
+export const getSlotWidth = (timeLineRef: HTMLDivElement | null) =>
+  getSlotSize(timeLineRef, 'horizontal')
 
 export const computeIntervalByPosition = (
   timeLineRef: HTMLDivElement | null,
   position: number,
-  width: number,
+  size: number,
   startDate: Dayjs,
   step: number = 30,
+  direction: SchedulerDirection = 'horizontal',
 ): TimeRange => {
-  if (!timeLineRef?.childNodes?.length) {
-    return [dayjs(), dayjs()]
-  }
-  const slotWidth = getSlotWidth(timeLineRef)
-
-  const slotIndex = Math.round(position / slotWidth)
-
+  if (!timeLineRef?.childNodes?.length) return [dayjs(), dayjs()]
+  const slotSize = getSlotSize(timeLineRef, direction)
+  const slotIndex = Math.round(position / slotSize)
   const slotStart = startDate.clone().add(slotIndex * step, 'minute')
-  const slotEnd = slotStart.clone().add((width / slotWidth) * step, 'minute')
+  const slotEnd = slotStart.clone().add((size / slotSize) * step, 'minute')
   return [slotStart, slotEnd]
 }
 
@@ -59,8 +55,9 @@ export const getSlotPosition = (
   startTime: Dayjs,
   startDate: Dayjs,
   step: number = 30,
-) => {
-  const slotSize = getSlotWidth(timeLineRef)
+  direction: SchedulerDirection = 'horizontal',
+): number => {
+  const slotSize = getSlotSize(timeLineRef, direction)
   const slotIndex = startTime.diff(startDate, 'minute') / step
   return slotIndex * slotSize
 }
@@ -70,17 +67,19 @@ export const computeIntervalCssStyles = ({
   timeLineRef,
   step,
   startDate,
+  direction = 'horizontal',
 }: {
   interval: TimeRange
   timeLineRef: HTMLDivElement | null
   step: number
   startDate: Dayjs
-}): IntervalStyles => {
+  direction?: SchedulerDirection
+}): { position: number; size: number } => {
   const [start, end] = interval
   const duration = Math.ceil(end.diff(start, 'minute') / step)
-
+  const slotSize = getSlotSize(timeLineRef, direction)
   return {
-    x: getSlotPosition(timeLineRef, interval[0], startDate, step),
-    width: getSlotWidth(timeLineRef) * duration,
+    position: getSlotPosition(timeLineRef, start, startDate, step, direction),
+    size: slotSize * duration,
   }
 }

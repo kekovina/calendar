@@ -6,6 +6,7 @@ import type { SchedulerProps, SchedulerResource } from '../types'
 import TimeLineRange from './TimeLineRange'
 
 const LABEL_WIDTH = 'w-28 shrink-0'
+const LABEL_HEIGHT = 'h-8 shrink-0'
 
 function selectionKey(resourceId: string, date: ReturnType<typeof dayjs>) {
   return `${resourceId}:${date.format('YYYY-MM-DD')}`
@@ -32,6 +33,7 @@ export function Scheduler({
   fixedDuration,
   disabled = false,
   disablePast = false,
+  direction = 'horizontal',
   debug = false,
   className,
   classNames: cls,
@@ -68,19 +70,92 @@ export function Scheduler({
     }))
   }, [view, date, resources, activeResourceId])
 
+  // ─── Horizontal layout ────────────────────────────────────────────────────
+  if (direction === 'horizontal') {
+    return (
+      <div className={classNames('overflow-x-auto', className)}>
+        <div className="flex min-w-fit flex-col gap-1">
+          {/* Header row */}
+          <div className="flex">
+            <div className={classNames(LABEL_WIDTH, 'sticky left-0 bg-inherit')} />
+            <div className="flex-1">
+              <TimeLineHeader startDate={startDate} endDate={endDate} interval={interval} />
+            </div>
+          </div>
+
+          {/* Timeline rows */}
+          {rows.map((row) => {
+            const rowStartDate = row.date.hour(startHour).minute(0).second(0).millisecond(0)
+            const rowEndDate = row.date.hour(endHour).minute(0).second(0).millisecond(0)
+            const rowDisabled = disabled || (row.resource.disabled ?? false)
+            const mergedClassNames = { ...cls, ...row.resource.classNames }
+            const selectedInterval = selections[row.key] ?? null
+            const rowEvents = row.resource.events ?? []
+
+            return (
+              <div key={row.key} className="flex items-center">
+                <div
+                  className={classNames(
+                    LABEL_WIDTH,
+                    'sticky left-0 z-10 bg-inherit pr-2 text-sm text-gray-600',
+                    rowDisabled && 'opacity-40',
+                  )}
+                >
+                  {renderRowLabel ? (
+                    renderRowLabel({ resource: row.resource, date: row.date })
+                  ) : (
+                    <span className="truncate">{row.label}</span>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <TimeLineRange
+                    id={row.key}
+                    startDate={rowStartDate}
+                    endDate={rowEndDate}
+                    selectedInterval={selectedInterval}
+                    events={rowEvents}
+                    interval={interval}
+                    minimumInterval={minimumInterval ?? interval}
+                    fixedDuration={fixedDuration}
+                    disabled={rowDisabled}
+                    disablePast={disablePast}
+                    direction="horizontal"
+                    debug={debug}
+                    classNames={mergedClassNames}
+                    renderResizeHandle={renderResizeHandle}
+                    renderIntervalContent={renderIntervalContent}
+                    onChange={(range, hasError) =>
+                      onChange?.(row.resource.id, row.date, range, hasError)
+                    }
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // ─── Vertical layout ──────────────────────────────────────────────────────
+  // Resources as columns, time axis on the left
   return (
     <div className={classNames('overflow-x-auto', className)}>
-      <div className="flex min-w-fit flex-col gap-1">
-        {/* Header row */}
-        <div className="flex">
-          {/* Sticky spacer matching label column */}
-          <div className={classNames(LABEL_WIDTH, 'sticky left-0 bg-inherit')} />
-          <div className="flex-1">
-            <TimeLineHeader startDate={startDate} endDate={endDate} interval={interval} />
-          </div>
+      <div className="flex min-w-fit">
+        {/* Time axis column */}
+        <div className="flex flex-col shrink-0">
+          {/* Top-left spacer for resource label row */}
+          <div className={LABEL_HEIGHT} />
+          <TimeLineHeader
+            startDate={startDate}
+            endDate={endDate}
+            interval={interval}
+            direction="vertical"
+          />
         </div>
 
-        {/* Timeline rows */}
+        {/* Resource columns */}
         {rows.map((row) => {
           const rowStartDate = row.date.hour(startHour).minute(0).second(0).millisecond(0)
           const rowEndDate = row.date.hour(endHour).minute(0).second(0).millisecond(0)
@@ -90,12 +165,12 @@ export function Scheduler({
           const rowEvents = row.resource.events ?? []
 
           return (
-            <div key={row.key} className="flex items-center">
-              {/* Sticky row label */}
+            <div key={row.key} className="flex flex-col flex-1 min-w-[80px]">
+              {/* Column header (resource label) */}
               <div
                 className={classNames(
-                  LABEL_WIDTH,
-                  'sticky left-0 z-10 bg-inherit pr-2 text-sm text-gray-600',
+                  LABEL_HEIGHT,
+                  'flex items-center justify-center px-1 text-sm text-gray-600 border-b border-gray-200',
                   rowDisabled && 'opacity-40',
                 )}
               >
@@ -106,28 +181,26 @@ export function Scheduler({
                 )}
               </div>
 
-              {/* Timeline — flex-1 but never shrinks below slots' natural min-width */}
-              <div className="flex-1">
-                <TimeLineRange
-                  id={row.key}
-                  startDate={rowStartDate}
-                  endDate={rowEndDate}
-                  selectedInterval={selectedInterval}
-                  events={rowEvents}
-                  interval={interval}
-                  minimumInterval={minimumInterval ?? interval}
-                  fixedDuration={fixedDuration}
-                  disabled={rowDisabled}
-                  disablePast={disablePast}
-                  debug={debug}
-                  classNames={mergedClassNames}
-                  renderResizeHandle={renderResizeHandle}
-                  renderIntervalContent={renderIntervalContent}
-                  onChange={(range, hasError) =>
-                    onChange?.(row.resource.id, row.date, range, hasError)
-                  }
-                />
-              </div>
+              <TimeLineRange
+                id={row.key}
+                startDate={rowStartDate}
+                endDate={rowEndDate}
+                selectedInterval={selectedInterval}
+                events={rowEvents}
+                interval={interval}
+                minimumInterval={minimumInterval ?? interval}
+                fixedDuration={fixedDuration}
+                disabled={rowDisabled}
+                disablePast={disablePast}
+                direction="vertical"
+                debug={debug}
+                classNames={mergedClassNames}
+                renderResizeHandle={renderResizeHandle}
+                renderIntervalContent={renderIntervalContent}
+                onChange={(range, hasError) =>
+                  onChange?.(row.resource.id, row.date, range, hasError)
+                }
+              />
             </div>
           )
         })}

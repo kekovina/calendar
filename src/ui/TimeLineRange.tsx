@@ -10,7 +10,7 @@ import { useRndHandlers } from '../hooks/useRndHandlers'
 import { useRndState } from '../hooks/useRndState'
 import { useSlotClick } from '../hooks/useSlotClick'
 import type { TimeLineRangeProps } from '../types'
-import { generateDateArray, getSlotWidth } from '../utils'
+import { generateDateArray, getSlotSize } from '../utils'
 
 const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
   (
@@ -28,6 +28,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       boundsEnd,
       interval = 30,
       fixedDuration,
+      direction = 'horizontal',
       debug = false,
       className,
       classNames: cls,
@@ -41,6 +42,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
     const localRef = useRef<HTMLDivElement>(null)
 
     const internalRef = (timeLineRef as React.RefObject<HTMLDivElement> | null) ?? localRef
+    const isVertical = direction === 'vertical'
 
     const intervalArray = useMemo(
       () => generateDateArray(startDate, endDate, interval),
@@ -55,6 +57,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       interval,
       minimumInterval,
       timeLineRef: internalRef,
+      direction,
     })
 
     const { handleClick } = useSlotClick({
@@ -65,6 +68,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       endDate,
       interval,
       fixedDuration,
+      direction,
       timeLineRef: internalRef,
       validateInterval,
       onChange,
@@ -80,6 +84,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       selectedInterval: selectedInterval ?? null,
       boundsStart,
       boundsEnd,
+      direction,
       validateInterval,
       onChange,
       onError: setIsError,
@@ -94,26 +99,65 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       timeLineRef: internalRef,
       interval,
       startDate,
+      direction,
     })
 
-    const isSmallCarret = (carretRef.current?.clientWidth ?? 0) < 150
+    const slotSize = getSlotSize(internalRef.current, direction)
+    const minSlotSize = (minimumInterval / interval) * slotSize
+
     const shouldShowSelection =
       selectedInterval && internalRef.current && selectedInterval[0].isSame(startDate, 'day')
 
     const displayInterval = rndState.selectedIntervalPreview || selectedInterval
 
+    // In horizontal: isSmall based on width; in vertical: based on height
+    const isSmallCarret = isVertical
+      ? (carretRef.current?.clientHeight ?? 0) < 80
+      : (carretRef.current?.clientWidth ?? 0) < 150
+
+    // Compute SelectionRnd props depending on direction
+    const containerRect = internalRef.current?.getBoundingClientRect()
+    const selectionProps = isVertical
+      ? {
+          width: '90%' as const,
+          height: rndState.width, // rndState.width holds the "size" (height in vertical)
+          posX: containerRect ? containerRect.width * 0.05 : 0,
+          posY: rndState.posX, // rndState.posX holds the "pos" (y in vertical)
+          minWidth: 0,
+          minHeight: minSlotSize,
+        }
+      : {
+          width: rndState.width,
+          height: '90%' as const,
+          posX: rndState.posX,
+          posY: containerRect ? (containerRect.height * 0.1) / 2 : 0,
+          minWidth: minSlotSize,
+          minHeight: 0,
+        }
+
     return (
-      <div className={classNames('h-[65px] w-full', cls?.root ?? 'bg-gray-100', className)}>
+      <div
+        className={classNames(
+          isVertical ? 'w-full h-auto' : 'h-[65px] w-full',
+          cls?.root ?? 'bg-gray-100',
+          className,
+        )}
+      >
         <div
-          className={classNames('relative flex h-full items-center', cls?.track)}
+          className={classNames(
+            'relative',
+            isVertical ? 'flex flex-col w-full' : 'flex h-full items-center',
+            cls?.track,
+          )}
           ref={internalRef}
         >
           {eventBlocks.map((block) => (
             <EventBlock
               key={`${id}::${block.id}`}
               id={block.id}
-              left={block.left}
-              width={block.width}
+              position={block.position}
+              size={block.size}
+              direction={direction}
               label={block.label}
               className={block.className ?? cls?.eventBlock}
             />
@@ -121,15 +165,12 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
 
           {shouldShowSelection && internalRef.current && (
             <SelectionRnd
-              width={rndState.width}
-              height="90%"
-              posX={rndState.posX}
-              posY={(internalRef.current.getBoundingClientRect().height * 0.1) / 2}
-              minWidth={(minimumInterval / interval) * getSlotWidth(internalRef.current)}
+              {...selectionProps}
               isError={isError}
               interval={displayInterval!}
               isSmallCarret={isSmallCarret}
-              gridSize={getSlotWidth(internalRef.current)}
+              gridSize={slotSize}
+              direction={direction}
               disableResize={!!fixedDuration}
               onDrag={rndHandlers.handleDrag}
               onDragStop={rndHandlers.handleDragStop}
@@ -148,6 +189,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               date={date}
               disabled={disabled}
               disablePast={disablePast}
+              direction={direction}
               debug={debug}
               onClick={handleClick}
               className={cls?.slot}
