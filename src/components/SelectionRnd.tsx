@@ -19,6 +19,7 @@ type SelectionRndProps = {
   isSmallCarret: boolean
   gridSize: number
   direction?: SchedulerDirection
+  isCrossDragging?: boolean
   onDrag: RndDragCallback
   onDragStop: RndDragCallback
   onResize: RndResizeCallback
@@ -42,6 +43,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
   isSmallCarret,
   gridSize,
   direction = 'horizontal',
+  isCrossDragging = false,
   onDrag,
   onDragStop,
   onResize,
@@ -115,6 +117,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
       }
       className={classNames(
         'rounded-2xl',
+        isCrossDragging && 'invisible',
         isError
           ? classNames('opacity-35', cls?.selectionError ?? 'bg-red-500')
           : (cls?.selection ?? 'bg-blue-500'),

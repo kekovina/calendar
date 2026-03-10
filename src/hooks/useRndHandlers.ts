@@ -1,5 +1,5 @@
 import { type Dayjs } from 'dayjs'
-import { type RefObject, useCallback } from 'react'
+import { type RefObject, useCallback, useState } from 'react'
 import type { DraggableData, RndDragCallback, RndResizeCallback } from 'react-rnd'
 import type { SchedulerDirection, TimeRange } from '../types'
 import { computeIntervalByPosition, getSlotSize } from '../utils'
@@ -65,6 +65,7 @@ export function useRndHandlers({
   clearPreview,
 }: UseRndHandlersProps) {
   const isVertical = direction === 'vertical'
+  const [isCrossDragging, setIsCrossDragging] = useState(false)
 
   const handleDrag: RndDragCallback = useCallback(
     (_e, data: DraggableData) => {
@@ -86,12 +87,20 @@ export function useRndHandlers({
         interval,
         direction,
       )
-      updatePreview(currentInterval)
-
-      if (crossDragEnabled && onCrossDragMove) {
+      if (crossDragEnabled) {
+        const rect = timeLineRef.current.getBoundingClientRect()
         const evt = _e as MouseEvent
-        onCrossDragMove(evt.clientX, evt.clientY, currentInterval)
+        const crossMousePos = isVertical ? evt.clientX : evt.clientY
+        const crossStart = isVertical ? rect.left : rect.top
+        const crossEnd = isVertical ? rect.right : rect.bottom
+        const isOutside = crossMousePos < crossStart || crossMousePos > crossEnd
+        setIsCrossDragging(isOutside)
+        if (onCrossDragMove) {
+          onCrossDragMove(evt.clientX, evt.clientY, currentInterval)
+        }
       }
+
+      updatePreview(currentInterval)
     },
     [
       timeLineRef,
@@ -123,6 +132,8 @@ export function useRndHandlers({
       const newEnd = newStart.clone().add(duration, 'minute')
 
       // Cross-timeline drag: detect by mouse position leaving the row container
+      setIsCrossDragging(false)
+
       if (crossDragEnabled && onCrossDragDrop) {
         const rect = timeLineRef.current.getBoundingClientRect()
         const evt = _e as MouseEvent
@@ -225,5 +236,6 @@ export function useRndHandlers({
     handleDragStop,
     handleResize,
     handleResizeStop,
+    isCrossDragging,
   }
 }

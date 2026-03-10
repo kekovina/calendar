@@ -217,23 +217,43 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
           ))}
 
           {shouldShowSelection && internalRef.current && (
-            <SelectionRnd
-              {...selectionProps}
-              isError={isError}
-              interval={displayInterval!}
-              isSmallCarret={isSmallCarret}
-              gridSize={slotSize}
-              direction={direction}
-              disableResize={!!fixedDuration}
-              onDrag={rndHandlers.handleDrag}
-              onDragStop={rndHandlers.handleDragStop}
-              onResize={rndHandlers.handleResize}
-              onResizeStop={rndHandlers.handleResizeStop}
-              carretRef={carretRef}
-              classNames={cls}
-              renderResizeHandle={renderResizeHandle}
-              renderIntervalContent={renderIntervalContent}
-            />
+            <>
+              {rndHandlers.isCrossDragging && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: selectionProps.posX,
+                    top: selectionProps.posY,
+                    width: selectionProps.width,
+                    height: selectionProps.height,
+                  }}
+                  className={classNames(
+                    'rounded-2xl pointer-events-none',
+                    isError
+                      ? classNames('opacity-35', cls?.selectionError ?? 'bg-red-500')
+                      : (cls?.selection ?? 'bg-blue-500'),
+                  )}
+                />
+              )}
+              <SelectionRnd
+                {...selectionProps}
+                isError={isError}
+                interval={displayInterval!}
+                isSmallCarret={isSmallCarret}
+                gridSize={slotSize}
+                direction={direction}
+                isCrossDragging={rndHandlers.isCrossDragging}
+                disableResize={!!fixedDuration}
+                onDrag={rndHandlers.handleDrag}
+                onDragStop={rndHandlers.handleDragStop}
+                onResize={rndHandlers.handleResize}
+                onResizeStop={rndHandlers.handleResizeStop}
+                carretRef={carretRef}
+                classNames={cls}
+                renderResizeHandle={renderResizeHandle}
+                renderIntervalContent={renderIntervalContent}
+              />
+            </>
           )}
 
           {previewStyle && (
