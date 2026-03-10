@@ -83,6 +83,14 @@ export function Scheduler({
   }, [view, date, resources, activeResourceId])
 
   // ─── Cross-timeline drag handlers ─────────────────────────────────────────
+  const isRowDisabled = useCallback(
+    (key: string) => {
+      const row = rows.find((r) => r.key === key)
+      return !row || disabled || (row.resource.disabled ?? false)
+    },
+    [rows, disabled],
+  )
+
   const handleCrossDragMove = useCallback(
     (sourceKey: string, clientX: number, clientY: number, interval: TimeRange) => {
       const elements = document.elementsFromPoint(clientX, clientY)
@@ -90,7 +98,7 @@ export function Scheduler({
         const rowEl = el.closest('[data-scheduler-key]')
         if (!rowEl) continue
         const targetKey = rowEl.getAttribute('data-scheduler-key')
-        if (!targetKey || targetKey === sourceKey) {
+        if (!targetKey || targetKey === sourceKey || isRowDisabled(targetKey)) {
           setCrossDragPreview(null)
           return
         }
@@ -99,7 +107,7 @@ export function Scheduler({
       }
       setCrossDragPreview(null)
     },
-    [],
+    [isRowDisabled],
   )
 
   const handleCrossDragDrop = useCallback(
@@ -110,7 +118,7 @@ export function Scheduler({
         const rowEl = el.closest('[data-scheduler-key]')
         if (!rowEl) continue
         const targetKey = rowEl.getAttribute('data-scheduler-key')
-        if (!targetKey || targetKey === sourceKey) continue
+        if (!targetKey || targetKey === sourceKey || isRowDisabled(targetKey)) continue
         const sourceRow = rows.find((r) => r.key === sourceKey)
         const targetRow = rows.find((r) => r.key === targetKey)
         if (sourceRow && targetRow) {
@@ -123,7 +131,7 @@ export function Scheduler({
         return
       }
     },
-    [rows, onCrossDrag],
+    [rows, isRowDisabled, onCrossDrag],
   )
 
   // ─── Horizontal layout ────────────────────────────────────────────────────
