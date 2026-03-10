@@ -41,6 +41,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       renderIntervalContent,
       renderLabel,
       renderEvent,
+      onEventClick,
     },
     timeLineRef,
   ) => {
@@ -220,6 +221,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               label={block.label}
               className={block.className ?? cls?.eventBlock}
               renderEvent={renderEvent}
+              onEventClick={onEventClick}
             />
           ))}
 

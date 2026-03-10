@@ -44,6 +44,7 @@ export function Scheduler({
   renderIntervalContent,
   renderRowLabel,
   renderEvent,
+  onEventClick,
 }: SchedulerProps) {
   const rawId = useId()
   // useId may produce colons which are invalid in CSS id selectors — strip them
@@ -274,6 +275,7 @@ export function Scheduler({
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
                     renderEvent={renderEvent}
+                    onEventClick={onEventClick}
                     onChange={({ range, error }) => {
                       setCrossDragPreview(null)
                       handleRowChange(row, range, error)

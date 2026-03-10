@@ -88,6 +88,11 @@ export type OnCrossDragOptions = {
   error: SelectionError
 }
 
+export type OnEventClickOptions = {
+  event: SchedulerEvent
+  direction: SchedulerDirection
+}
+
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
@@ -122,6 +127,7 @@ export type TimeLineRangeProps = {
   renderIntervalContent?: (options: RenderIntervalContentOptions) => ReactNode
   renderLabel?: (options: RenderLabelOptions) => ReactNode
   renderEvent?: (options: RenderEventOptions) => ReactNode
+  onEventClick?: (options: OnEventClickOptions) => void
 }
 
 // ─── Scheduler ────────────────────────────────────────────────────────────────
@@ -173,4 +179,5 @@ export type SchedulerProps = {
   renderIntervalContent?: (options: RenderIntervalContentOptions) => ReactNode
   renderRowLabel?: (options: RenderRowLabelOptions) => ReactNode
   renderEvent?: (options: RenderEventOptions) => ReactNode
+  onEventClick?: (options: OnEventClickOptions) => void
 }

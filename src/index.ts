@@ -18,6 +18,7 @@ export type {
   OnCrossDragMoveOptions,
   OnSchedulerChangeOptions,
   OnCrossDragOptions,
+  OnEventClickOptions,
 } from './types'
 export type {
   SchedulerProps,
