@@ -14,7 +14,7 @@ type UseSlotClickProps = {
   direction?: SchedulerDirection
   timeLineRef: RefObject<HTMLDivElement | null>
   validateInterval: (start: Dayjs, end: Dayjs) => boolean
-  onChange?: (range: TimeRange, hasError: boolean) => void
+  onChange?: (options: { range: TimeRange; hasError: boolean }) => void
   onError: (error: boolean) => void
   updatePosition: (v: number) => void
   updateWidth: (v: number) => void
@@ -57,7 +57,7 @@ export function useSlotClick({
         start.second(0).millisecond(0),
         end.second(0).millisecond(0),
       ]
-      onChange?.(normalizedRange, hasError)
+      onChange?.({ range: normalizedRange, hasError })
 
       const slotSize = getSlotSize(timeLineRef.current, direction)
       updatePosition(getSlotPosition(timeLineRef.current, date, startDate, interval, direction))

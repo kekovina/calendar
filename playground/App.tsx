@@ -531,12 +531,16 @@ export default function App() {
   }
 
   // Slot click: update selection on timeline without opening the form
-  const handleSchedulerChange = (
-    resourceId: string,
-    rowDate: Dayjs,
-    range: TimeRange,
-    _hasError: boolean,
-  ) => {
+  const handleSchedulerChange = ({
+    resourceId,
+    date: rowDate,
+    range,
+  }: {
+    resourceId: string
+    date: Dayjs
+    range: TimeRange | null
+    hasError: boolean
+  }) => {
     const key = selectionKey(resourceId, rowDate)
     setSelections((prev) => ({ ...prev, [key]: range }))
   }
@@ -641,7 +645,7 @@ export default function App() {
             activeResourceId={activeResourceId}
             selections={selections}
             onChange={handleSchedulerChange}
-            onCrossDrag={(from, to, range) => {
+            onCrossDrag={({ from, to, range }) => {
               const fromKey = selectionKey(from.resourceId, from.date)
               const toKey = selectionKey(to.resourceId, to.date)
               setSelections((prev) => ({ ...prev, [fromKey]: null, [toKey]: range }))

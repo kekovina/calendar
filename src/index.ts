@@ -12,6 +12,11 @@ export type {
   RenderLabelOptions,
   RenderEventOptions,
   RenderRowLabelOptions,
+  OnChangeOptions,
+  OnCrossDragDropOptions,
+  OnCrossDragMoveOptions,
+  OnSchedulerChangeOptions,
+  OnCrossDragOptions,
 } from './types'
 export type {
   SchedulerProps,

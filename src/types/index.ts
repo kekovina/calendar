@@ -53,17 +53,50 @@ export type RenderRowLabelOptions = {
   direction: SchedulerDirection
 }
 
+// ─── Handler option types ──────────────────────────────────────────────────────
+
+export type OnChangeOptions = {
+  range: TimeRange
+  hasError: boolean
+}
+
+export type OnCrossDragDropOptions = {
+  clientX: number
+  clientY: number
+  range: TimeRange
+}
+
+export type OnCrossDragMoveOptions = {
+  clientX: number
+  clientY: number
+  interval: TimeRange
+}
+
+export type OnSchedulerChangeOptions = {
+  resourceId: string
+  date: Dayjs
+  range: TimeRange | null
+  hasError: boolean
+}
+
+export type OnCrossDragOptions = {
+  from: CrossDragPayload
+  to: CrossDragPayload
+  range: TimeRange
+  hasError: boolean
+}
+
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
   previewInterval?: TimeRange | null
   previewError?: boolean
   events?: SchedulerEvent[]
-  onChange?: (range: TimeRange, hasError: boolean) => void
+  onChange?: (options: OnChangeOptions) => void
   /** Called when the selection is dragged and released outside this timeline's bounds. */
-  onCrossDragDrop?: (clientX: number, clientY: number, range: TimeRange) => void
+  onCrossDragDrop?: (options: OnCrossDragDropOptions) => void
   /** Called on every drag event when crossDragEnabled, to allow previewing on the target row. */
-  onCrossDragMove?: (clientX: number, clientY: number, interval: TimeRange) => void
+  onCrossDragMove?: (options: OnCrossDragMoveOptions) => void
   startDate?: Dayjs
   endDate?: Dayjs
   boundsStart?: Dayjs
@@ -114,16 +147,11 @@ export type SchedulerProps = {
   resources: SchedulerResource[]
   activeResourceId?: string
   selections?: SchedulerSelections
-  onChange?: (resourceId: string, date: Dayjs, range: TimeRange | null, hasError: boolean) => void
+  onChange?: (options: OnSchedulerChangeOptions) => void
   /** Allow only one active selection across all rows at a time. */
   singleSelection?: boolean
   /** Called when a selection is dropped onto a different timeline row/column. */
-  onCrossDrag?: (
-    from: CrossDragPayload,
-    to: CrossDragPayload,
-    range: TimeRange,
-    hasError: boolean,
-  ) => void
+  onCrossDrag?: (options: OnCrossDragOptions) => void
   startHour?: number
   endHour?: number
   /** Slot step in minutes. */

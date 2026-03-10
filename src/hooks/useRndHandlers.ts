@@ -14,9 +14,9 @@ type UseRndHandlersProps = {
   direction?: SchedulerDirection
   crossDragEnabled?: boolean
   validateInterval: (start: Dayjs, end: Dayjs) => boolean
-  onChange?: (range: TimeRange, hasError: boolean) => void
-  onCrossDragDrop?: (clientX: number, clientY: number, range: TimeRange) => void
-  onCrossDragMove?: (clientX: number, clientY: number, interval: TimeRange) => void
+  onChange?: (options: { range: TimeRange; hasError: boolean }) => void
+  onCrossDragDrop?: (options: { clientX: number; clientY: number; range: TimeRange }) => void
+  onCrossDragMove?: (options: { clientX: number; clientY: number; interval: TimeRange }) => void
   onError: (error: boolean) => void
   updatePosition: (v: number) => void
   updateWidth: (v: number) => void
@@ -96,7 +96,7 @@ export function useRndHandlers({
         const isOutside = crossMousePos < crossStart || crossMousePos > crossEnd
         setIsCrossDragging(isOutside)
         if (onCrossDragMove) {
-          onCrossDragMove(evt.clientX, evt.clientY, currentInterval)
+          onCrossDragMove({ clientX: evt.clientX, clientY: evt.clientY, interval: currentInterval })
         }
       }
 
@@ -141,7 +141,7 @@ export function useRndHandlers({
         const crossStart = isVertical ? rect.left : rect.top
         const crossEnd = isVertical ? rect.right : rect.bottom
         if (crossMousePos < crossStart || crossMousePos > crossEnd) {
-          onCrossDragDrop(evt.clientX, evt.clientY, [newStart, newEnd])
+          onCrossDragDrop({ clientX: evt.clientX, clientY: evt.clientY, range: [newStart, newEnd] })
           clearPreview()
           return
         }
@@ -149,7 +149,7 @@ export function useRndHandlers({
 
       const hasError = validateInterval(newStart, newEnd)
       onError(hasError)
-      onChange?.([newStart, newEnd], hasError)
+      onChange?.({ range: [newStart, newEnd], hasError })
       updatePosition(pos)
       clearPreview()
     },
@@ -211,7 +211,7 @@ export function useRndHandlers({
 
       const hasError = validateInterval(newStart, newEnd)
       onError(hasError)
-      onChange?.([newStart, newEnd], hasError)
+      onChange?.({ range: [newStart, newEnd], hasError })
       updateWidth(rectSize)
       updatePosition(pos)
       clearPreview()

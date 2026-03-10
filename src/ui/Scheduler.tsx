@@ -106,11 +106,11 @@ export function Scheduler({
       if (singleSelection && range !== null) {
         rows.forEach((r) => {
           if (r.key !== row.key && selections[r.key]) {
-            onChange?.(r.resource.id, r.date, null, false)
+            onChange?.({ resourceId: r.resource.id, date: r.date, range: null, hasError: false })
           }
         })
       }
-      onChange?.(row.resource.id, row.date, range, hasError)
+      onChange?.({ resourceId: row.resource.id, date: row.date, range, hasError })
     },
     [rows, selections, singleSelection, onChange],
   )
@@ -125,7 +125,10 @@ export function Scheduler({
   )
 
   const handleCrossDragMove = useCallback(
-    (sourceKey: string, clientX: number, clientY: number, interval: TimeRange) => {
+    (
+      sourceKey: string,
+      { clientX, clientY, interval }: { clientX: number; clientY: number; interval: TimeRange },
+    ) => {
       const elements = document.elementsFromPoint(clientX, clientY)
       for (const el of elements) {
         const rowEl = el.closest('[data-scheduler-key]')
@@ -157,7 +160,10 @@ export function Scheduler({
   )
 
   const handleCrossDragDrop = useCallback(
-    (sourceKey: string, clientX: number, clientY: number, range: TimeRange) => {
+    (
+      sourceKey: string,
+      { clientX, clientY, range }: { clientX: number; clientY: number; range: TimeRange },
+    ) => {
       setCrossDragPreview(null)
       const elements = document.elementsFromPoint(clientX, clientY)
       for (const el of elements) {
@@ -181,12 +187,12 @@ export function Scheduler({
           // Validate against target row's events
           const hasError = validateAgainstRow(targetRow, targetStart, targetEnd)
 
-          onCrossDrag?.(
-            { resourceId: sourceRow.resource.id, date: sourceRow.date },
-            { resourceId: targetRow.resource.id, date: targetRow.date },
-            adjustedRange,
+          onCrossDrag?.({
+            from: { resourceId: sourceRow.resource.id, date: sourceRow.date },
+            to: { resourceId: targetRow.resource.id, date: targetRow.date },
+            range: adjustedRange,
             hasError,
-          )
+          })
         }
         return
       }
@@ -262,16 +268,12 @@ export function Scheduler({
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
                     renderEvent={renderEvent}
-                    onChange={(range, hasError) => {
+                    onChange={({ range, hasError }) => {
                       setCrossDragPreview(null)
                       handleRowChange(row, range, hasError)
                     }}
-                    onCrossDragMove={(clientX, clientY, ivl) =>
-                      handleCrossDragMove(row.key, clientX, clientY, ivl)
-                    }
-                    onCrossDragDrop={(clientX, clientY, range) =>
-                      handleCrossDragDrop(row.key, clientX, clientY, range)
-                    }
+                    onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
+                    onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
                   />
                 </div>
               </div>
@@ -353,16 +355,12 @@ export function Scheduler({
                 renderResizeHandle={renderResizeHandle}
                 renderIntervalContent={renderIntervalContent}
                 renderEvent={renderEvent}
-                onChange={(range, hasError) => {
+                onChange={({ range, hasError }) => {
                   setCrossDragPreview(null)
                   handleRowChange(row, range, hasError)
                 }}
-                onCrossDragMove={(clientX, clientY, ivl) =>
-                  handleCrossDragMove(row.key, clientX, clientY, ivl)
-                }
-                onCrossDragDrop={(clientX, clientY, range) =>
-                  handleCrossDragDrop(row.key, clientX, clientY, range)
-                }
+                onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
+                onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
               />
             </div>
           )
