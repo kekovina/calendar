@@ -79,12 +79,14 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
       resizeHandleComponent={
         isVertical
           ? {
-              top: <ResizeHandle dir="left" render={renderResizeHandle} />,
-              bottom: <ResizeHandle dir="right" render={renderResizeHandle} />,
+              top: <ResizeHandle dir="left" direction="vertical" render={renderResizeHandle} />,
+              bottom: <ResizeHandle dir="right" direction="vertical" render={renderResizeHandle} />,
             }
           : {
-              right: <ResizeHandle dir="right" render={renderResizeHandle} />,
-              left: <ResizeHandle dir="left" render={renderResizeHandle} />,
+              right: (
+                <ResizeHandle dir="right" direction="horizontal" render={renderResizeHandle} />
+              ),
+              left: <ResizeHandle dir="left" direction="horizontal" render={renderResizeHandle} />,
             }
       }
       resizeHandleClasses={
@@ -101,11 +103,11 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
             }
           : {
               right: classNames(
-                'h-full cursor-col-resize rounded-r-2xl flex items-center',
+                'h-full cursor-col-resize rounded-r-2xl flex items-center flex justify-center',
                 handleCls ?? cls?.resizeHandleRight ?? 'bg-blue-700',
               ),
               left: classNames(
-                'h-full cursor-col-resize rounded-l-2xl flex items-center',
+                'h-full cursor-col-resize rounded-l-2xl flex items-center flex justify-center',
                 handleCls ?? cls?.resizeHandleLeft ?? 'bg-blue-700',
               ),
             }

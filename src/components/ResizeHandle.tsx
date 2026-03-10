@@ -1,15 +1,31 @@
 import classNames from 'classnames'
 import React from 'react'
 import type { ReactNode } from 'react'
+import type { SchedulerDirection } from '../types'
 
 type ResizeHandleProps = {
   dir: 'left' | 'right'
+  direction?: SchedulerDirection
   className?: string
   render?: (dir: 'left' | 'right') => ReactNode
 }
 
-export const ResizeHandle: React.FC<ResizeHandleProps> = ({ dir, className, render }) => {
+export const ResizeHandle: React.FC<ResizeHandleProps> = ({
+  dir,
+  direction = 'horizontal',
+  className,
+  render,
+}) => {
   if (render) return <>{render(dir)}</>
+
+  const rotationClass =
+    direction === 'vertical'
+      ? dir === 'left'
+        ? '-rotate-90'
+        : 'rotate-90'
+      : dir === 'left'
+        ? 'rotate-180'
+        : ''
 
   return (
     <svg
@@ -17,7 +33,7 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = ({ dir, className, rend
       height={16}
       viewBox="0 0 8 16"
       fill="none"
-      className={classNames('shrink-0', { 'rotate-180': dir === 'left' }, className)}
+      className={classNames('shrink-0 text-white', rotationClass, className)}
     >
       <path
         d="M2 4l4 4-4 4"
