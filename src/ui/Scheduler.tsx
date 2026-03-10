@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import type dayjs from 'dayjs'
-import { useCallback, useId, useMemo } from 'react'
+import { useCallback, useId, useMemo, useState } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
 import type { SchedulerProps, SchedulerResource, TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
@@ -48,6 +48,11 @@ export function Scheduler({
   const containerId = `sch-${rawId.replace(/:/g, '')}`
   const crossDragBounds = crossDrag ? `#${containerId}` : undefined
 
+  const [crossDragPreview, setCrossDragPreview] = useState<{
+    targetKey: string
+    interval: TimeRange
+  } | null>(null)
+
   const startDate = date.hour(startHour).minute(0).second(0).millisecond(0)
   const endDate = date.hour(endHour).minute(0).second(0).millisecond(0)
 
@@ -77,9 +82,29 @@ export function Scheduler({
     }))
   }, [view, date, resources, activeResourceId])
 
-  // ─── Cross-timeline drag handler ──────────────────────────────────────────
+  // ─── Cross-timeline drag handlers ─────────────────────────────────────────
+  const handleCrossDragMove = useCallback(
+    (sourceKey: string, clientX: number, clientY: number, interval: TimeRange) => {
+      const elements = document.elementsFromPoint(clientX, clientY)
+      for (const el of elements) {
+        const rowEl = el.closest('[data-scheduler-key]')
+        if (!rowEl) continue
+        const targetKey = rowEl.getAttribute('data-scheduler-key')
+        if (!targetKey || targetKey === sourceKey) {
+          setCrossDragPreview(null)
+          return
+        }
+        setCrossDragPreview({ targetKey, interval })
+        return
+      }
+      setCrossDragPreview(null)
+    },
+    [],
+  )
+
   const handleCrossDragDrop = useCallback(
     (sourceKey: string, clientX: number, clientY: number, range: TimeRange) => {
+      setCrossDragPreview(null)
       const elements = document.elementsFromPoint(clientX, clientY)
       for (const el of elements) {
         const rowEl = el.closest('[data-scheduler-key]')
@@ -145,6 +170,9 @@ export function Scheduler({
                     startDate={rowStartDate}
                     endDate={rowEndDate}
                     selectedInterval={selectedInterval}
+                    previewInterval={
+                      crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                    }
                     events={rowEvents}
                     interval={interval}
                     minimumInterval={minimumInterval ?? interval}
@@ -158,8 +186,12 @@ export function Scheduler({
                     classNames={mergedClassNames}
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
-                    onChange={(range, hasError) =>
+                    onChange={(range, hasError) => {
+                      setCrossDragPreview(null)
                       onChange?.(row.resource.id, row.date, range, hasError)
+                    }}
+                    onCrossDragMove={(clientX, clientY, ivl) =>
+                      handleCrossDragMove(row.key, clientX, clientY, ivl)
                     }
                     onCrossDragDrop={(clientX, clientY, range) =>
                       handleCrossDragDrop(row.key, clientX, clientY, range)
@@ -226,6 +258,9 @@ export function Scheduler({
                 startDate={rowStartDate}
                 endDate={rowEndDate}
                 selectedInterval={selectedInterval}
+                previewInterval={
+                  crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                }
                 events={rowEvents}
                 interval={interval}
                 minimumInterval={minimumInterval ?? interval}
@@ -238,8 +273,12 @@ export function Scheduler({
                 classNames={mergedClassNames}
                 renderResizeHandle={renderResizeHandle}
                 renderIntervalContent={renderIntervalContent}
-                onChange={(range, hasError) =>
+                onChange={(range, hasError) => {
+                  setCrossDragPreview(null)
                   onChange?.(row.resource.id, row.date, range, hasError)
+                }}
+                onCrossDragMove={(clientX, clientY, ivl) =>
+                  handleCrossDragMove(row.key, clientX, clientY, ivl)
                 }
                 onCrossDragDrop={(clientX, clientY, range) =>
                   handleCrossDragDrop(row.key, clientX, clientY, range)

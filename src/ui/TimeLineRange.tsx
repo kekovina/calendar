@@ -10,7 +10,7 @@ import { useRndHandlers } from '../hooks/useRndHandlers'
 import { useRndState } from '../hooks/useRndState'
 import { useSlotClick } from '../hooks/useSlotClick'
 import type { TimeLineRangeProps } from '../types'
-import { generateDateArray, getSlotSize } from '../utils'
+import { generateDateArray, getSlotPosition, getSlotSize } from '../utils'
 
 const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
   (
@@ -19,9 +19,11 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       disabled = false,
       disablePast = false,
       selectedInterval,
+      previewInterval,
       events = [],
       onChange,
       onCrossDragDrop,
+      onCrossDragMove,
       minimumInterval = 30,
       startDate = dayjs().startOf('day'),
       endDate = dayjs().endOf('day'),
@@ -31,7 +33,6 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       fixedDuration,
       direction = 'horizontal',
       crossDragEnabled = false,
-      crossDragBounds,
       debug = false,
       className,
       classNames: cls,
@@ -92,13 +93,12 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       validateInterval,
       onChange,
       onCrossDragDrop,
+      onCrossDragMove,
       onError: setIsError,
       updatePosition: rndState.updatePosition,
       updateWidth: rndState.updateWidth,
       updatePreview: rndState.updatePreview,
       clearPreview: rndState.clearPreview,
-      updateCrossCompensation: rndState.updateCrossCompensation,
-      clearCrossCompensation: rndState.clearCrossCompensation,
     })
 
     const eventBlocks = useDisabledIntervals({
@@ -142,6 +142,43 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
           minHeight: 0,
         }
 
+    // Compute cross-drag preview element position/size
+    const previewStyle = useMemo(() => {
+      if (!previewInterval || !internalRef.current) return null
+      const rowDay = startDate.startOf('day')
+      // Adjust interval to this row's day (preserve time-of-day)
+      const adjStart = rowDay
+        .hour(previewInterval[0].hour())
+        .minute(previewInterval[0].minute())
+        .second(0)
+      const adjEnd = rowDay
+        .hour(previewInterval[1].hour())
+        .minute(previewInterval[1].minute())
+        .second(0)
+      const sz = getSlotSize(internalRef.current, direction)
+      const pos = getSlotPosition(internalRef.current, adjStart, startDate, interval, direction)
+      const duration = adjEnd.diff(adjStart, 'minute')
+      const size = (duration / interval) * sz
+      const rect = internalRef.current.getBoundingClientRect()
+      if (isVertical) {
+        return {
+          position: 'absolute' as const,
+          top: pos,
+          height: size,
+          left: rect.width * 0.05,
+          width: '90%',
+        }
+      }
+      return {
+        position: 'absolute' as const,
+        left: pos,
+        width: size,
+        top: (rect.height * 0.1) / 2,
+        height: '90%',
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [previewInterval, startDate, interval, direction, isVertical, internalRef.current])
+
     return (
       <div
         className={classNames(
@@ -171,36 +208,33 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
           ))}
 
           {shouldShowSelection && internalRef.current && (
+            <SelectionRnd
+              {...selectionProps}
+              isError={isError}
+              interval={displayInterval!}
+              isSmallCarret={isSmallCarret}
+              gridSize={slotSize}
+              direction={direction}
+              disableResize={!!fixedDuration}
+              onDrag={rndHandlers.handleDrag}
+              onDragStop={rndHandlers.handleDragStop}
+              onResize={rndHandlers.handleResize}
+              onResizeStop={rndHandlers.handleResizeStop}
+              carretRef={carretRef}
+              classNames={cls}
+              renderResizeHandle={renderResizeHandle}
+              renderIntervalContent={renderIntervalContent}
+            />
+          )}
+
+          {previewStyle && (
             <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                pointerEvents: 'none',
-                transform: isVertical
-                  ? `translateX(${rndState.crossCompensation}px)`
-                  : `translateY(${rndState.crossCompensation}px)`,
-              }}
-            >
-              <SelectionRnd
-                {...selectionProps}
-                isError={isError}
-                interval={displayInterval!}
-                isSmallCarret={isSmallCarret}
-                gridSize={slotSize}
-                direction={direction}
-                crossDragEnabled={crossDragEnabled}
-                crossDragBounds={crossDragBounds}
-                disableResize={!!fixedDuration}
-                onDrag={rndHandlers.handleDrag}
-                onDragStop={rndHandlers.handleDragStop}
-                onResize={rndHandlers.handleResize}
-                onResizeStop={rndHandlers.handleResizeStop}
-                carretRef={carretRef}
-                classNames={cls}
-                renderResizeHandle={renderResizeHandle}
-                renderIntervalContent={renderIntervalContent}
-              />
-            </div>
+              style={previewStyle}
+              className={classNames(
+                'rounded-2xl pointer-events-none opacity-50',
+                cls?.selection ?? 'bg-blue-500',
+              )}
+            />
           )}
 
           {intervalArray.slice(0, -1).map((date) => (

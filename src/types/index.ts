@@ -27,10 +27,13 @@ export type SchedulerDirection = 'horizontal' | 'vertical'
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
+  previewInterval?: TimeRange | null
   events?: SchedulerEvent[]
   onChange?: (range: TimeRange, hasError: boolean) => void
   /** Called when the selection is dragged and released outside this timeline's bounds. */
   onCrossDragDrop?: (clientX: number, clientY: number, range: TimeRange) => void
+  /** Called on every drag event when crossDragEnabled, to allow previewing on the target row. */
+  onCrossDragMove?: (clientX: number, clientY: number, interval: TimeRange) => void
   startDate?: Dayjs
   endDate?: Dayjs
   boundsStart?: Dayjs

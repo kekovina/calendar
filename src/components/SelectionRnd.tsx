@@ -19,8 +19,6 @@ type SelectionRndProps = {
   isSmallCarret: boolean
   gridSize: number
   direction?: SchedulerDirection
-  crossDragEnabled?: boolean
-  crossDragBounds?: string
   onDrag: RndDragCallback
   onDragStop: RndDragCallback
   onResize: RndResizeCallback
@@ -44,8 +42,6 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
   isSmallCarret,
   gridSize,
   direction = 'horizontal',
-  crossDragEnabled = false,
-  crossDragBounds,
   onDrag,
   onDragStop,
   onResize,
@@ -63,7 +59,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
     <Rnd
       size={{ width, height }}
       position={{ x: posX, y: posY }}
-      bounds={crossDragEnabled ? (crossDragBounds ?? 'body') : 'parent'}
+      bounds="parent"
       enableResizing={
         isVertical
           ? { top: !disableResize, bottom: !disableResize, left: false, right: false }
@@ -71,7 +67,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
       }
       minWidth={minWidth}
       minHeight={minHeight}
-      dragAxis={crossDragEnabled ? 'both' : isVertical ? 'y' : 'x'}
+      dragAxis={isVertical ? 'y' : 'x'}
       dragGrid={isVertical ? [1, gridSize] : [gridSize, 1]}
       resizeGrid={isVertical ? [1, gridSize] : [gridSize, 1]}
       onDrag={onDrag}
@@ -119,7 +115,6 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
       }
       className={classNames(
         'rounded-2xl',
-        crossDragEnabled && 'z-50',
         isError
           ? classNames('opacity-35', cls?.selectionError ?? 'bg-red-500')
           : (cls?.selection ?? 'bg-blue-500'),

@@ -25,7 +25,6 @@ export function useRndState({
   const [size, setSize] = useState(0)
   const [pos, setPos] = useState(0)
   const [selectedIntervalPreview, setSelectedIntervalPreview] = useState<TimeRange | null>(null)
-  const [crossCompensation, setCrossCompensation] = useState(0)
 
   useEffect(() => {
     if (!selectedInterval || !timeLineRef.current) return
@@ -50,20 +49,15 @@ export function useRndState({
     setSelectedIntervalPreview(preview)
   }, [])
   const clearPreview = useCallback(() => setSelectedIntervalPreview(null), [])
-  const updateCrossCompensation = useCallback((v: number) => setCrossCompensation(v), [])
-  const clearCrossCompensation = useCallback(() => setCrossCompensation(0), [])
 
   return {
     // expose as posX/width so callers can map to the right axis based on direction
     posX: pos,
     width: size,
     selectedIntervalPreview,
-    crossCompensation,
     updatePosition,
     updateWidth,
     updatePreview,
     clearPreview,
-    updateCrossCompensation,
-    clearCrossCompensation,
   }
 }
