@@ -19,6 +19,7 @@ export type {
   OnSchedulerChangeOptions,
   OnCrossDragOptions,
   OnEventClickOptions,
+  RenderOverlayOptions,
 } from './types'
 export type {
   SchedulerProps,

@@ -2,6 +2,7 @@ import classNames from 'classnames'
 import dayjs from 'dayjs'
 import { useCallback, useId, useMemo, useState } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
+import { Overlay } from '../components/Overlay'
 import type { SchedulerProps, SchedulerResource, SelectionError, TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
 
@@ -45,6 +46,9 @@ export function Scheduler({
   renderRowLabel,
   renderEvent,
   onEventClick,
+  isLoading = false,
+  loadingText,
+  renderOverlay,
 }: SchedulerProps) {
   const rawId = useId()
   // useId may produce colons which are invalid in CSS id selectors — strip them
@@ -207,21 +211,131 @@ export function Scheduler({
     [rows, isRowDisabled, validateAgainstRow, onCrossDrag],
   )
 
+  const showOverlay = isLoading || !!renderOverlay
+
   // ─── Horizontal layout ────────────────────────────────────────────────────
   if (direction === 'horizontal') {
     return (
-      <div id={containerId} className={classNames('overflow-x-auto', className)}>
-        <div className="flex min-w-fit flex-col gap-1">
-          {/* Header row */}
-          <div className="flex">
-            <div className={classNames(LABEL_WIDTH, 'sticky left-0 bg-inherit')} />
-            <div className="flex-1">
-              <TimeLineHeader startDate={startDate} endDate={endDate} interval={interval} />
+      <div className={classNames('relative', className)}>
+        <div id={containerId} className="overflow-x-auto">
+          <div className="flex min-w-fit flex-col gap-1">
+            {/* Header row */}
+            <div className="flex">
+              <div className={classNames(LABEL_WIDTH, 'sticky left-0 bg-inherit')} />
+              <div className="flex-1">
+                <TimeLineHeader startDate={startDate} endDate={endDate} interval={interval} />
+              </div>
             </div>
+
+            {/* Timeline rows */}
+            {rows.map((row) => {
+              if (showOverlay) {
+                return <div key={row.key} className="h-[65px]" />
+              }
+
+              const rowStartDate = row.date.hour(startHour).minute(0).second(0).millisecond(0)
+              const rowEndDate = row.date.hour(endHour).minute(0).second(0).millisecond(0)
+              const rowDisabled = disabled || (row.resource.disabled ?? false)
+              const mergedClassNames = { ...cls, ...row.resource.classNames }
+              const selectedInterval = selections[row.key] ?? null
+              const rowEvents = row.resource.events ?? []
+
+              return (
+                <div key={row.key} className="flex items-center" data-scheduler-key={row.key}>
+                  <div
+                    className={classNames(
+                      LABEL_WIDTH,
+                      'sticky left-0 z-10 bg-inherit pr-2 text-sm text-gray-600',
+                      rowDisabled && 'opacity-40',
+                    )}
+                  >
+                    {renderRowLabel ? (
+                      renderRowLabel({
+                        resource: row.resource,
+                        date: row.date,
+                        direction: 'horizontal',
+                      })
+                    ) : (
+                      <span className="truncate">{row.label}</span>
+                    )}
+                  </div>
+
+                  <div className="flex-1">
+                    <TimeLineRange
+                      id={row.key}
+                      startDate={rowStartDate}
+                      endDate={rowEndDate}
+                      selectedInterval={selectedInterval}
+                      previewInterval={
+                        crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                      }
+                      previewError={
+                        crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
+                      }
+                      events={rowEvents}
+                      interval={interval}
+                      minimumInterval={minimumInterval ?? interval}
+                      fixedDuration={fixedDuration}
+                      disabled={rowDisabled}
+                      disablePast={disablePast}
+                      direction="horizontal"
+                      crossDragEnabled={crossDrag && !rowDisabled}
+                      crossDragBounds={crossDragBounds}
+                      debug={debug}
+                      classNames={mergedClassNames}
+                      renderResizeHandle={renderResizeHandle}
+                      renderIntervalContent={renderIntervalContent}
+                      renderEvent={renderEvent}
+                      onEventClick={onEventClick}
+                      onChange={({ range, error }) => {
+                        setCrossDragPreview(null)
+                        handleRowChange(row, range, error)
+                      }}
+                      onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
+                      onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+        {showOverlay && (
+          <Overlay
+            isLoading={isLoading}
+            loadingText={loadingText}
+            renderOverlay={renderOverlay ? () => renderOverlay({ direction }) : undefined}
+            direction={direction}
+          />
+        )}
+      </div>
+    )
+  }
+
+  // ─── Vertical layout ──────────────────────────────────────────────────────
+  // Resources as columns, time axis on the left
+  return (
+    <div className={classNames('relative', className)}>
+      <div id={containerId} className="overflow-x-auto">
+        <div className="flex min-w-fit">
+          {/* Time axis column */}
+          <div className="flex flex-col shrink-0">
+            {/* Top-left spacer for resource label row */}
+            <div className={LABEL_HEIGHT} />
+            <TimeLineHeader
+              startDate={startDate}
+              endDate={endDate}
+              interval={interval}
+              direction="vertical"
+            />
           </div>
 
-          {/* Timeline rows */}
+          {/* Resource columns */}
           {rows.map((row) => {
+            if (showOverlay) {
+              return <div key={row.key} className="flex-1 min-w-[80px]" />
+            }
+
             const rowStartDate = row.date.hour(startHour).minute(0).second(0).millisecond(0)
             const rowEndDate = row.date.hour(endHour).minute(0).second(0).millisecond(0)
             const rowDisabled = disabled || (row.resource.disabled ?? false)
@@ -230,11 +344,16 @@ export function Scheduler({
             const rowEvents = row.resource.events ?? []
 
             return (
-              <div key={row.key} className="flex items-center" data-scheduler-key={row.key}>
+              <div
+                key={row.key}
+                className="flex flex-col flex-1 min-w-[80px]"
+                data-scheduler-key={row.key}
+              >
+                {/* Column header (resource label) */}
                 <div
                   className={classNames(
-                    LABEL_WIDTH,
-                    'sticky left-0 z-10 bg-inherit pr-2 text-sm text-gray-600',
+                    LABEL_HEIGHT,
+                    'flex items-center justify-center px-1 text-sm text-gray-600 border-b border-gray-200',
                     rowDisabled && 'opacity-40',
                   )}
                 >
@@ -242,138 +361,57 @@ export function Scheduler({
                     renderRowLabel({
                       resource: row.resource,
                       date: row.date,
-                      direction: 'horizontal',
+                      direction: 'vertical',
                     })
                   ) : (
                     <span className="truncate">{row.label}</span>
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <TimeLineRange
-                    id={row.key}
-                    startDate={rowStartDate}
-                    endDate={rowEndDate}
-                    selectedInterval={selectedInterval}
-                    previewInterval={
-                      crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
-                    }
-                    previewError={
-                      crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
-                    }
-                    events={rowEvents}
-                    interval={interval}
-                    minimumInterval={minimumInterval ?? interval}
-                    fixedDuration={fixedDuration}
-                    disabled={rowDisabled}
-                    disablePast={disablePast}
-                    direction="horizontal"
-                    crossDragEnabled={crossDrag && !rowDisabled}
-                    crossDragBounds={crossDragBounds}
-                    debug={debug}
-                    classNames={mergedClassNames}
-                    renderResizeHandle={renderResizeHandle}
-                    renderIntervalContent={renderIntervalContent}
-                    renderEvent={renderEvent}
-                    onEventClick={onEventClick}
-                    onChange={({ range, error }) => {
-                      setCrossDragPreview(null)
-                      handleRowChange(row, range, error)
-                    }}
-                    onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
-                    onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
-                  />
-                </div>
+                <TimeLineRange
+                  id={row.key}
+                  startDate={rowStartDate}
+                  endDate={rowEndDate}
+                  selectedInterval={selectedInterval}
+                  previewInterval={
+                    crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                  }
+                  previewError={
+                    crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
+                  }
+                  events={rowEvents}
+                  interval={interval}
+                  minimumInterval={minimumInterval ?? interval}
+                  fixedDuration={fixedDuration}
+                  disabled={rowDisabled}
+                  disablePast={disablePast}
+                  direction="vertical"
+                  crossDragEnabled={crossDrag && !rowDisabled}
+                  debug={debug}
+                  classNames={mergedClassNames}
+                  renderResizeHandle={renderResizeHandle}
+                  renderIntervalContent={renderIntervalContent}
+                  renderEvent={renderEvent}
+                  onChange={({ range, error }) => {
+                    setCrossDragPreview(null)
+                    handleRowChange(row, range, error)
+                  }}
+                  onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
+                  onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
+                />
               </div>
             )
           })}
         </div>
       </div>
-    )
-  }
-
-  // ─── Vertical layout ──────────────────────────────────────────────────────
-  // Resources as columns, time axis on the left
-  return (
-    <div id={containerId} className={classNames('overflow-x-auto', className)}>
-      <div className="flex min-w-fit">
-        {/* Time axis column */}
-        <div className="flex flex-col shrink-0">
-          {/* Top-left spacer for resource label row */}
-          <div className={LABEL_HEIGHT} />
-          <TimeLineHeader
-            startDate={startDate}
-            endDate={endDate}
-            interval={interval}
-            direction="vertical"
-          />
-        </div>
-
-        {/* Resource columns */}
-        {rows.map((row) => {
-          const rowStartDate = row.date.hour(startHour).minute(0).second(0).millisecond(0)
-          const rowEndDate = row.date.hour(endHour).minute(0).second(0).millisecond(0)
-          const rowDisabled = disabled || (row.resource.disabled ?? false)
-          const mergedClassNames = { ...cls, ...row.resource.classNames }
-          const selectedInterval = selections[row.key] ?? null
-          const rowEvents = row.resource.events ?? []
-
-          return (
-            <div
-              key={row.key}
-              className="flex flex-col flex-1 min-w-[80px]"
-              data-scheduler-key={row.key}
-            >
-              {/* Column header (resource label) */}
-              <div
-                className={classNames(
-                  LABEL_HEIGHT,
-                  'flex items-center justify-center px-1 text-sm text-gray-600 border-b border-gray-200',
-                  rowDisabled && 'opacity-40',
-                )}
-              >
-                {renderRowLabel ? (
-                  renderRowLabel({ resource: row.resource, date: row.date, direction: 'vertical' })
-                ) : (
-                  <span className="truncate">{row.label}</span>
-                )}
-              </div>
-
-              <TimeLineRange
-                id={row.key}
-                startDate={rowStartDate}
-                endDate={rowEndDate}
-                selectedInterval={selectedInterval}
-                previewInterval={
-                  crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
-                }
-                previewError={
-                  crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
-                }
-                events={rowEvents}
-                interval={interval}
-                minimumInterval={minimumInterval ?? interval}
-                fixedDuration={fixedDuration}
-                disabled={rowDisabled}
-                disablePast={disablePast}
-                direction="vertical"
-                crossDragEnabled={crossDrag && !rowDisabled}
-                debug={debug}
-                classNames={mergedClassNames}
-                renderResizeHandle={renderResizeHandle}
-                renderIntervalContent={renderIntervalContent}
-                renderEvent={renderEvent}
-                onChange={({ range, error }) => {
-                  setCrossDragPreview(null)
-                  handleRowChange(row, range, error)
-                }}
-                onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
-                onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
-              />
-            </div>
-          )
-        })}
-      </div>
+      {showOverlay && (
+        <Overlay
+          isLoading={isLoading}
+          loadingText={loadingText}
+          renderOverlay={renderOverlay ? () => renderOverlay({ direction }) : undefined}
+          direction={direction}
+        />
+      )}
     </div>
   )
 }

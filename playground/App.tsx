@@ -659,6 +659,7 @@ export default function App() {
             direction={direction}
             singleSelection
             crossDrag
+            isLoading
           />
         </div>
 

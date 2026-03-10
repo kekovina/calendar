@@ -93,6 +93,10 @@ export type OnEventClickOptions = {
   direction: SchedulerDirection
 }
 
+export type RenderOverlayOptions = {
+  direction: SchedulerDirection
+}
+
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
@@ -180,4 +184,7 @@ export type SchedulerProps = {
   renderRowLabel?: (options: RenderRowLabelOptions) => ReactNode
   renderEvent?: (options: RenderEventOptions) => ReactNode
   onEventClick?: (options: OnEventClickOptions) => void
+  isLoading?: boolean
+  loadingText?: string
+  renderOverlay?: (options: RenderOverlayOptions) => ReactNode
 }
