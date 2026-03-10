@@ -9,6 +9,7 @@ import type {
   SchedulerResource,
   SchedulerSelections,
   SchedulerView,
+  SelectionError,
   TimeRange,
 } from '../src'
 
@@ -539,7 +540,7 @@ export default function App() {
     resourceId: string
     date: Dayjs
     range: TimeRange | null
-    hasError: boolean
+    error: SelectionError
   }) => {
     const key = selectionKey(resourceId, rowDate)
     setSelections((prev) => ({ ...prev, [key]: range }))

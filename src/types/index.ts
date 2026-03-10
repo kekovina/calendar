@@ -24,6 +24,8 @@ export type SchedulerClassNames = {
 
 export type SchedulerDirection = 'horizontal' | 'vertical'
 
+export type SelectionError = 'overlap' | 'past' | null
+
 // ─── Render option types ───────────────────────────────────────────────────────
 
 export type RenderResizeHandleOptions = {
@@ -34,7 +36,7 @@ export type RenderResizeHandleOptions = {
 export type RenderIntervalContentOptions = {
   interval: TimeRange
   isSmall: boolean
-  isError: boolean
+  error: SelectionError
   direction: SchedulerDirection
 }
 
@@ -57,7 +59,7 @@ export type RenderRowLabelOptions = {
 
 export type OnChangeOptions = {
   range: TimeRange
-  hasError: boolean
+  error: SelectionError
 }
 
 export type OnCrossDragDropOptions = {
@@ -76,21 +78,21 @@ export type OnSchedulerChangeOptions = {
   resourceId: string
   date: Dayjs
   range: TimeRange | null
-  hasError: boolean
+  error: SelectionError
 }
 
 export type OnCrossDragOptions = {
   from: CrossDragPayload
   to: CrossDragPayload
   range: TimeRange
-  hasError: boolean
+  error: SelectionError
 }
 
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
   previewInterval?: TimeRange | null
-  previewError?: boolean
+  previewError?: SelectionError
   events?: SchedulerEvent[]
   onChange?: (options: OnChangeOptions) => void
   /** Called when the selection is dragged and released outside this timeline's bounds. */

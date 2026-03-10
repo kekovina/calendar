@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import dayjs from 'dayjs'
 import { useCallback, useId, useMemo, useState } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
-import type { SchedulerProps, SchedulerResource, TimeRange } from '../types'
+import type { SchedulerProps, SchedulerResource, SelectionError, TimeRange } from '../types'
 import TimeLineRange from './TimeLineRange'
 
 const LABEL_WIDTH = 'w-28 shrink-0'
@@ -53,11 +53,15 @@ export function Scheduler({
   const [crossDragPreview, setCrossDragPreview] = useState<{
     targetKey: string
     interval: TimeRange
-    hasError: boolean
+    error: SelectionError
   } | null>(null)
 
   const validateAgainstRow = useCallback(
-    (row: RowData, start: ReturnType<typeof dayjs>, end: ReturnType<typeof dayjs>): boolean => {
+    (
+      row: RowData,
+      start: ReturnType<typeof dayjs>,
+      end: ReturnType<typeof dayjs>,
+    ): SelectionError => {
       const events = row.resource.events ?? []
       const s = start.startOf('minute')
       const e = end.startOf('minute')
@@ -66,7 +70,9 @@ export function Scheduler({
         const evE = ee.startOf('minute')
         return (s >= evS && s < evE) || (e > evS && e <= evE) || (s < evS && e > evE)
       })
-      return hasOverlap || (disablePast && dayjs().isAfter(start))
+      if (hasOverlap) return 'overlap'
+      if (disablePast && dayjs().isAfter(start)) return 'past'
+      return null
     },
     [disablePast],
   )
@@ -102,15 +108,15 @@ export function Scheduler({
 
   // ─── Single-selection enforcement ─────────────────────────────────────────
   const handleRowChange = useCallback(
-    (row: RowData, range: TimeRange | null, hasError: boolean) => {
+    (row: RowData, range: TimeRange | null, error: SelectionError) => {
       if (singleSelection && range !== null) {
         rows.forEach((r) => {
           if (r.key !== row.key && selections[r.key]) {
-            onChange?.({ resourceId: r.resource.id, date: r.date, range: null, hasError: false })
+            onChange?.({ resourceId: r.resource.id, date: r.date, range: null, error: null })
           }
         })
       }
-      onChange?.({ resourceId: row.resource.id, date: row.date, range, hasError })
+      onChange?.({ resourceId: row.resource.id, date: row.date, range, error })
     },
     [rows, selections, singleSelection, onChange],
   )
@@ -150,8 +156,8 @@ export function Scheduler({
           .second(0)
           .millisecond(0)
         const adjEnd = adjStart.add(duration, 'minute')
-        const hasError = validateAgainstRow(targetRow, adjStart, adjEnd)
-        setCrossDragPreview({ targetKey, interval, hasError })
+        const error = validateAgainstRow(targetRow, adjStart, adjEnd)
+        setCrossDragPreview({ targetKey, interval, error })
         return
       }
       setCrossDragPreview(null)
@@ -185,13 +191,13 @@ export function Scheduler({
           const adjustedRange: TimeRange = [targetStart, targetEnd]
 
           // Validate against target row's events
-          const hasError = validateAgainstRow(targetRow, targetStart, targetEnd)
+          const error = validateAgainstRow(targetRow, targetStart, targetEnd)
 
           onCrossDrag?.({
             from: { resourceId: sourceRow.resource.id, date: sourceRow.date },
             to: { resourceId: targetRow.resource.id, date: targetRow.date },
             range: adjustedRange,
-            hasError,
+            error,
           })
         }
         return
@@ -252,7 +258,7 @@ export function Scheduler({
                       crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
                     }
                     previewError={
-                      crossDragPreview?.targetKey === row.key ? crossDragPreview.hasError : false
+                      crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
                     }
                     events={rowEvents}
                     interval={interval}
@@ -268,9 +274,9 @@ export function Scheduler({
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
                     renderEvent={renderEvent}
-                    onChange={({ range, hasError }) => {
+                    onChange={({ range, error }) => {
                       setCrossDragPreview(null)
-                      handleRowChange(row, range, hasError)
+                      handleRowChange(row, range, error)
                     }}
                     onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
                     onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}
@@ -340,7 +346,7 @@ export function Scheduler({
                   crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
                 }
                 previewError={
-                  crossDragPreview?.targetKey === row.key ? crossDragPreview.hasError : false
+                  crossDragPreview?.targetKey === row.key ? crossDragPreview.error : null
                 }
                 events={rowEvents}
                 interval={interval}
@@ -355,9 +361,9 @@ export function Scheduler({
                 renderResizeHandle={renderResizeHandle}
                 renderIntervalContent={renderIntervalContent}
                 renderEvent={renderEvent}
-                onChange={({ range, hasError }) => {
+                onChange={({ range, error }) => {
                   setCrossDragPreview(null)
-                  handleRowChange(row, range, hasError)
+                  handleRowChange(row, range, error)
                 }}
                 onCrossDragMove={(opts) => handleCrossDragMove(row.key, opts)}
                 onCrossDragDrop={(opts) => handleCrossDragDrop(row.key, opts)}

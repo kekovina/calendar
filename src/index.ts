@@ -7,6 +7,7 @@ export type {
   TimeRange,
   SchedulerClassNames,
   SchedulerEvent,
+  SelectionError,
   RenderResizeHandleOptions,
   RenderIntervalContentOptions,
   RenderLabelOptions,

@@ -1,7 +1,7 @@
 import { type Dayjs } from 'dayjs'
 import { type RefObject, useCallback, useState } from 'react'
 import type { DraggableData, RndDragCallback, RndResizeCallback } from 'react-rnd'
-import type { SchedulerDirection, TimeRange } from '../types'
+import type { SchedulerDirection, SelectionError, TimeRange } from '../types'
 import { computeIntervalByPosition, getSlotSize } from '../utils'
 
 type UseRndHandlersProps = {
@@ -13,11 +13,11 @@ type UseRndHandlersProps = {
   boundsEnd?: Dayjs
   direction?: SchedulerDirection
   crossDragEnabled?: boolean
-  validateInterval: (start: Dayjs, end: Dayjs) => boolean
-  onChange?: (options: { range: TimeRange; hasError: boolean }) => void
+  validateInterval: (start: Dayjs, end: Dayjs) => SelectionError
+  onChange?: (options: { range: TimeRange; error: SelectionError }) => void
   onCrossDragDrop?: (options: { clientX: number; clientY: number; range: TimeRange }) => void
   onCrossDragMove?: (options: { clientX: number; clientY: number; interval: TimeRange }) => void
-  onError: (error: boolean) => void
+  onError: (error: SelectionError) => void
   updatePosition: (v: number) => void
   updateWidth: (v: number) => void
   updatePreview: (preview: TimeRange | null) => void
@@ -147,9 +147,9 @@ export function useRndHandlers({
         }
       }
 
-      const hasError = validateInterval(newStart, newEnd)
-      onError(hasError)
-      onChange?.({ range: [newStart, newEnd], hasError })
+      const error = validateInterval(newStart, newEnd)
+      onError(error)
+      onChange?.({ range: [newStart, newEnd], error })
       updatePosition(pos)
       clearPreview()
     },
@@ -209,9 +209,9 @@ export function useRndHandlers({
       const newSizeInMinutes = Math.round((offsetSize / slotSize) * interval)
       const newEnd = newStart.clone().add(newSizeInMinutes, 'minute')
 
-      const hasError = validateInterval(newStart, newEnd)
-      onError(hasError)
-      onChange?.({ range: [newStart, newEnd], hasError })
+      const error = validateInterval(newStart, newEnd)
+      onError(error)
+      onChange?.({ range: [newStart, newEnd], error })
       updateWidth(rectSize)
       updatePosition(pos)
       clearPreview()

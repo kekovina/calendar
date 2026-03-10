@@ -9,7 +9,7 @@ import { useIntervalValidation } from '../hooks/useIntervalValidation'
 import { useRndHandlers } from '../hooks/useRndHandlers'
 import { useRndState } from '../hooks/useRndState'
 import { useSlotClick } from '../hooks/useSlotClick'
-import type { TimeLineRangeProps } from '../types'
+import type { SelectionError, TimeLineRangeProps } from '../types'
 import { generateDateArray, getSlotPosition, getSlotSize } from '../utils'
 
 const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
@@ -20,7 +20,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       disablePast = false,
       selectedInterval,
       previewInterval,
-      previewError = false,
+      previewError = null,
       events = [],
       onChange,
       onCrossDragDrop,
@@ -44,7 +44,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
     },
     timeLineRef,
   ) => {
-    const [isError, setIsError] = useState(false)
+    const [selectionError, setSelectionError] = useState<SelectionError>(null)
     const carretRef = useRef<HTMLDivElement | null>(null)
     const localRef = useRef<HTMLDivElement>(null)
 
@@ -60,10 +60,10 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
 
     useEffect(() => {
       if (!selectedInterval) {
-        setIsError(false)
+        setSelectionError(null)
         return
       }
-      setIsError(validateInterval(selectedInterval[0], selectedInterval[1]))
+      setSelectionError(validateInterval(selectedInterval[0], selectedInterval[1]))
     }, [selectedInterval, validateInterval])
 
     const rndState = useRndState({
@@ -87,7 +87,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       timeLineRef: internalRef,
       validateInterval,
       onChange,
-      onError: setIsError,
+      onError: setSelectionError,
       updatePosition: rndState.updatePosition,
       updateWidth: rndState.updateWidth,
     })
@@ -105,7 +105,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       onChange,
       onCrossDragDrop,
       onCrossDragMove,
-      onError: setIsError,
+      onError: setSelectionError,
       updatePosition: rndState.updatePosition,
       updateWidth: rndState.updateWidth,
       updatePreview: rndState.updatePreview,
@@ -236,7 +236,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
                   }}
                   className={classNames(
                     'rounded-2xl pointer-events-none',
-                    isError
+                    selectionError !== null
                       ? classNames('opacity-35', cls?.selectionError ?? 'bg-red-500')
                       : (cls?.selection ?? 'bg-blue-500'),
                   )}
@@ -244,7 +244,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               )}
               <SelectionRnd
                 {...selectionProps}
-                isError={isError}
+                error={selectionError}
                 interval={displayInterval!}
                 isSmallCarret={isSmallCarret}
                 gridSize={slotSize}
@@ -268,7 +268,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               style={previewStyle}
               className={classNames(
                 'rounded-2xl pointer-events-none opacity-50',
-                previewError
+                previewError !== null
                   ? (cls?.selectionError ?? 'bg-red-500')
                   : (cls?.selection ?? 'bg-blue-500'),
               )}

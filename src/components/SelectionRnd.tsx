@@ -3,7 +3,7 @@ import React from 'react'
 import type { ReactNode, RefObject } from 'react'
 import { Rnd } from 'react-rnd'
 import type { RndResizeCallback, RndDragCallback } from 'react-rnd'
-import type { TimeRange, SchedulerClassNames, SchedulerDirection } from '../types'
+import type { TimeRange, SchedulerClassNames, SchedulerDirection, SelectionError } from '../types'
 import { DisplayInterval } from './DisplayInterval'
 import { ResizeHandle } from './ResizeHandle'
 
@@ -14,7 +14,7 @@ type SelectionRndProps = {
   posY: number
   minWidth: number
   minHeight: number
-  isError: boolean
+  error: SelectionError
   interval: TimeRange
   isSmallCarret: boolean
   gridSize: number
@@ -34,7 +34,7 @@ type SelectionRndProps = {
   renderIntervalContent?: (options: {
     interval: TimeRange
     isSmall: boolean
-    isError: boolean
+    error: SelectionError
     direction: SchedulerDirection
   }) => ReactNode
 }
@@ -46,7 +46,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
   posY,
   minWidth,
   minHeight,
-  isError,
+  error,
   interval,
   isSmallCarret,
   gridSize,
@@ -63,7 +63,8 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
   renderIntervalContent,
 }) => {
   const isVertical = direction === 'vertical'
-  const handleCls = isError ? 'bg-red-600' : undefined
+  const hasError = error !== null
+  const handleCls = hasError ? 'bg-red-600' : undefined
 
   return (
     <Rnd
@@ -128,7 +129,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
       className={classNames(
         'rounded-2xl',
         isCrossDragging && 'invisible',
-        isError
+        hasError
           ? classNames('opacity-35', cls?.selectionError ?? 'bg-red-500')
           : (cls?.selection ?? 'bg-blue-500'),
       )}
@@ -140,7 +141,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
           })}
         >
           {renderIntervalContent ? (
-            renderIntervalContent({ interval, isSmall: isSmallCarret, isError, direction })
+            renderIntervalContent({ interval, isSmall: isSmallCarret, error, direction })
           ) : (
             <DisplayInterval interval={interval} isSmall={isSmallCarret} />
           )}
