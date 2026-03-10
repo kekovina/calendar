@@ -652,6 +652,7 @@ export default function App() {
             minimumInterval={minimumInterval}
             disablePast={disablePast}
             direction={direction}
+            singleSelection
             crossDrag
           />
         </div>

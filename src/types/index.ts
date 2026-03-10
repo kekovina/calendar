@@ -83,7 +83,9 @@ export type SchedulerProps = {
   resources: SchedulerResource[]
   activeResourceId?: string
   selections?: SchedulerSelections
-  onChange?: (resourceId: string, date: Dayjs, range: TimeRange, hasError: boolean) => void
+  onChange?: (resourceId: string, date: Dayjs, range: TimeRange | null, hasError: boolean) => void
+  /** Allow only one active selection across all rows at a time. */
+  singleSelection?: boolean
   /** Called when a selection is dropped onto a different timeline row/column. */
   onCrossDrag?: (
     from: CrossDragPayload,

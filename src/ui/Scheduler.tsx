@@ -36,6 +36,7 @@ export function Scheduler({
   disablePast = false,
   direction = 'horizontal',
   crossDrag = false,
+  singleSelection = false,
   debug = false,
   className,
   classNames: cls,
@@ -97,6 +98,21 @@ export function Scheduler({
       label: resource.label,
     }))
   }, [view, date, resources, activeResourceId])
+
+  // ─── Single-selection enforcement ─────────────────────────────────────────
+  const handleRowChange = useCallback(
+    (row: RowData, range: TimeRange | null, hasError: boolean) => {
+      if (singleSelection && range !== null) {
+        rows.forEach((r) => {
+          if (r.key !== row.key && selections[r.key]) {
+            onChange?.(r.resource.id, r.date, null, false)
+          }
+        })
+      }
+      onChange?.(row.resource.id, row.date, range, hasError)
+    },
+    [rows, selections, singleSelection, onChange],
+  )
 
   // ─── Cross-timeline drag handlers ─────────────────────────────────────────
   const isRowDisabled = useCallback(
@@ -242,7 +258,7 @@ export function Scheduler({
                     renderIntervalContent={renderIntervalContent}
                     onChange={(range, hasError) => {
                       setCrossDragPreview(null)
-                      onChange?.(row.resource.id, row.date, range, hasError)
+                      handleRowChange(row, range, hasError)
                     }}
                     onCrossDragMove={(clientX, clientY, ivl) =>
                       handleCrossDragMove(row.key, clientX, clientY, ivl)
@@ -332,7 +348,7 @@ export function Scheduler({
                 renderIntervalContent={renderIntervalContent}
                 onChange={(range, hasError) => {
                   setCrossDragPreview(null)
-                  onChange?.(row.resource.id, row.date, range, hasError)
+                  handleRowChange(row, range, hasError)
                 }}
                 onCrossDragMove={(clientX, clientY, ivl) =>
                   handleCrossDragMove(row.key, clientX, clientY, ivl)
