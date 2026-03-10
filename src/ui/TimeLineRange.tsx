@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import dayjs from 'dayjs'
-import React, { forwardRef, useMemo, useRef, useState } from 'react'
+import React, { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { EventBlock } from '../components/EventBlock'
 import { SelectionRnd } from '../components/SelectionRnd'
 import { TimeSlot } from '../components/TimeSlot'
@@ -20,6 +20,7 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       disablePast = false,
       selectedInterval,
       previewInterval,
+      previewError = false,
       events = [],
       onChange,
       onCrossDragDrop,
@@ -54,6 +55,14 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
     )
 
     const { validateInterval } = useIntervalValidation(events, disablePast)
+
+    useEffect(() => {
+      if (!selectedInterval) {
+        setIsError(false)
+        return
+      }
+      setIsError(validateInterval(selectedInterval[0], selectedInterval[1]))
+    }, [selectedInterval, validateInterval])
 
     const rndState = useRndState({
       selectedInterval: selectedInterval ?? null,
@@ -232,7 +241,9 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
               style={previewStyle}
               className={classNames(
                 'rounded-2xl pointer-events-none opacity-50',
-                cls?.selection ?? 'bg-blue-500',
+                previewError
+                  ? (cls?.selectionError ?? 'bg-red-500')
+                  : (cls?.selection ?? 'bg-blue-500'),
               )}
             />
           )}

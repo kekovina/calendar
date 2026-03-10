@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import type dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import { useCallback, useId, useMemo, useState } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
 import type { SchedulerProps, SchedulerResource, TimeRange } from '../types'
@@ -51,7 +51,23 @@ export function Scheduler({
   const [crossDragPreview, setCrossDragPreview] = useState<{
     targetKey: string
     interval: TimeRange
+    hasError: boolean
   } | null>(null)
+
+  const validateAgainstRow = useCallback(
+    (row: RowData, start: ReturnType<typeof dayjs>, end: ReturnType<typeof dayjs>): boolean => {
+      const events = row.resource.events ?? []
+      const s = start.startOf('minute')
+      const e = end.startOf('minute')
+      const hasOverlap = events.some(({ range: [es, ee] }) => {
+        const evS = es.startOf('minute')
+        const evE = ee.startOf('minute')
+        return (s >= evS && s < evE) || (e > evS && e <= evE) || (s < evS && e > evE)
+      })
+      return hasOverlap || (disablePast && dayjs().isAfter(start))
+    },
+    [disablePast],
+  )
 
   const startDate = date.hour(startHour).minute(0).second(0).millisecond(0)
   const endDate = date.hour(endHour).minute(0).second(0).millisecond(0)
@@ -102,12 +118,25 @@ export function Scheduler({
           setCrossDragPreview(null)
           return
         }
-        setCrossDragPreview({ targetKey, interval })
+        const targetRow = rows.find((r) => r.key === targetKey)
+        if (!targetRow) {
+          setCrossDragPreview(null)
+          return
+        }
+        const duration = interval[1].diff(interval[0], 'minute')
+        const adjStart = targetRow.date
+          .hour(interval[0].hour())
+          .minute(interval[0].minute())
+          .second(0)
+          .millisecond(0)
+        const adjEnd = adjStart.add(duration, 'minute')
+        const hasError = validateAgainstRow(targetRow, adjStart, adjEnd)
+        setCrossDragPreview({ targetKey, interval, hasError })
         return
       }
       setCrossDragPreview(null)
     },
-    [isRowDisabled],
+    [rows, isRowDisabled, validateAgainstRow],
   )
 
   const handleCrossDragDrop = useCallback(
@@ -122,16 +151,30 @@ export function Scheduler({
         const sourceRow = rows.find((r) => r.key === sourceKey)
         const targetRow = rows.find((r) => r.key === targetKey)
         if (sourceRow && targetRow) {
+          // Adjust interval to target row's date (preserving time-of-day)
+          const duration = range[1].diff(range[0], 'minute')
+          const targetStart = targetRow.date
+            .hour(range[0].hour())
+            .minute(range[0].minute())
+            .second(0)
+            .millisecond(0)
+          const targetEnd = targetStart.add(duration, 'minute')
+          const adjustedRange: TimeRange = [targetStart, targetEnd]
+
+          // Validate against target row's events
+          const hasError = validateAgainstRow(targetRow, targetStart, targetEnd)
+
           onCrossDrag?.(
             { resourceId: sourceRow.resource.id, date: sourceRow.date },
             { resourceId: targetRow.resource.id, date: targetRow.date },
-            range,
+            adjustedRange,
+            hasError,
           )
         }
         return
       }
     },
-    [rows, isRowDisabled, onCrossDrag],
+    [rows, isRowDisabled, validateAgainstRow, onCrossDrag],
   )
 
   // ─── Horizontal layout ────────────────────────────────────────────────────
@@ -180,6 +223,9 @@ export function Scheduler({
                     selectedInterval={selectedInterval}
                     previewInterval={
                       crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                    }
+                    previewError={
+                      crossDragPreview?.targetKey === row.key ? crossDragPreview.hasError : false
                     }
                     events={rowEvents}
                     interval={interval}
@@ -268,6 +314,9 @@ export function Scheduler({
                 selectedInterval={selectedInterval}
                 previewInterval={
                   crossDragPreview?.targetKey === row.key ? crossDragPreview.interval : null
+                }
+                previewError={
+                  crossDragPreview?.targetKey === row.key ? crossDragPreview.hasError : false
                 }
                 events={rowEvents}
                 interval={interval}

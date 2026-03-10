@@ -28,6 +28,7 @@ export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
   previewInterval?: TimeRange | null
+  previewError?: boolean
   events?: SchedulerEvent[]
   onChange?: (range: TimeRange, hasError: boolean) => void
   /** Called when the selection is dragged and released outside this timeline's bounds. */
@@ -84,7 +85,12 @@ export type SchedulerProps = {
   selections?: SchedulerSelections
   onChange?: (resourceId: string, date: Dayjs, range: TimeRange, hasError: boolean) => void
   /** Called when a selection is dropped onto a different timeline row/column. */
-  onCrossDrag?: (from: CrossDragPayload, to: CrossDragPayload, range: TimeRange) => void
+  onCrossDrag?: (
+    from: CrossDragPayload,
+    to: CrossDragPayload,
+    range: TimeRange,
+    hasError: boolean,
+  ) => void
   startHour?: number
   endHour?: number
   /** Slot step in minutes. */
