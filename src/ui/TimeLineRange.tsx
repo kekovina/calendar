@@ -39,6 +39,8 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       classNames: cls,
       renderResizeHandle,
       renderIntervalContent,
+      renderLabel,
+      renderEvent,
     },
     timeLineRef,
   ) => {
@@ -192,13 +194,16 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       <div
         className={classNames(
           isVertical ? 'w-full h-auto' : 'h-[65px] w-full',
+          renderLabel && (isVertical ? 'flex flex-col' : 'flex flex-row'),
           cls?.root ?? 'bg-gray-100',
           className,
         )}
       >
+        {renderLabel && renderLabel({ direction })}
         <div
           className={classNames(
             'relative',
+            renderLabel && 'flex-1',
             isVertical ? 'flex flex-col w-full' : 'flex h-full items-center',
             cls?.track,
           )}
@@ -208,11 +213,13 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
             <EventBlock
               key={`${id}::${block.id}`}
               id={block.id}
+              event={block.event}
               position={block.position}
               size={block.size}
               direction={direction}
               label={block.label}
               className={block.className ?? cls?.eventBlock}
+              renderEvent={renderEvent}
             />
           ))}
 

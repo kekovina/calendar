@@ -60,6 +60,7 @@ export function useDisabledIntervals({
         })
 
         return {
+          event,
           id: event.id ?? `${start.valueOf()}-${end.valueOf()}`,
           position: styles.position,
           size: styles.size,

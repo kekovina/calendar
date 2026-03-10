@@ -7,7 +7,7 @@ type ResizeHandleProps = {
   dir: 'left' | 'right'
   direction?: SchedulerDirection
   className?: string
-  render?: (dir: 'left' | 'right') => ReactNode
+  render?: (options: { dir: 'left' | 'right'; direction: SchedulerDirection }) => ReactNode
 }
 
 export const ResizeHandle: React.FC<ResizeHandleProps> = ({
@@ -16,7 +16,7 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = ({
   className,
   render,
 }) => {
-  if (render) return <>{render(dir)}</>
+  if (render) return <>{render({ dir, direction })}</>
 
   const rotationClass =
     direction === 'vertical'

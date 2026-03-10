@@ -27,8 +27,16 @@ type SelectionRndProps = {
   carretRef: RefObject<HTMLDivElement | null>
   disableResize?: boolean
   classNames?: SchedulerClassNames
-  renderResizeHandle?: (dir: 'left' | 'right') => ReactNode
-  renderIntervalContent?: (interval: TimeRange, isSmall: boolean) => ReactNode
+  renderResizeHandle?: (options: {
+    dir: 'left' | 'right'
+    direction: SchedulerDirection
+  }) => ReactNode
+  renderIntervalContent?: (options: {
+    interval: TimeRange
+    isSmall: boolean
+    isError: boolean
+    direction: SchedulerDirection
+  }) => ReactNode
 }
 
 export const SelectionRnd: React.FC<SelectionRndProps> = ({
@@ -132,7 +140,7 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
           })}
         >
           {renderIntervalContent ? (
-            renderIntervalContent(interval, isSmallCarret)
+            renderIntervalContent({ interval, isSmall: isSmallCarret, isError, direction })
           ) : (
             <DisplayInterval interval={interval} isSmall={isSmallCarret} />
           )}

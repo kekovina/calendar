@@ -43,6 +43,7 @@ export function Scheduler({
   renderResizeHandle,
   renderIntervalContent,
   renderRowLabel,
+  renderEvent,
 }: SchedulerProps) {
   const rawId = useId()
   // useId may produce colons which are invalid in CSS id selectors — strip them
@@ -225,7 +226,11 @@ export function Scheduler({
                   )}
                 >
                   {renderRowLabel ? (
-                    renderRowLabel({ resource: row.resource, date: row.date })
+                    renderRowLabel({
+                      resource: row.resource,
+                      date: row.date,
+                      direction: 'horizontal',
+                    })
                   ) : (
                     <span className="truncate">{row.label}</span>
                   )}
@@ -256,6 +261,7 @@ export function Scheduler({
                     classNames={mergedClassNames}
                     renderResizeHandle={renderResizeHandle}
                     renderIntervalContent={renderIntervalContent}
+                    renderEvent={renderEvent}
                     onChange={(range, hasError) => {
                       setCrossDragPreview(null)
                       handleRowChange(row, range, hasError)
@@ -317,7 +323,7 @@ export function Scheduler({
                 )}
               >
                 {renderRowLabel ? (
-                  renderRowLabel({ resource: row.resource, date: row.date })
+                  renderRowLabel({ resource: row.resource, date: row.date, direction: 'vertical' })
                 ) : (
                   <span className="truncate">{row.label}</span>
                 )}
@@ -346,6 +352,7 @@ export function Scheduler({
                 classNames={mergedClassNames}
                 renderResizeHandle={renderResizeHandle}
                 renderIntervalContent={renderIntervalContent}
+                renderEvent={renderEvent}
                 onChange={(range, hasError) => {
                   setCrossDragPreview(null)
                   handleRowChange(row, range, hasError)

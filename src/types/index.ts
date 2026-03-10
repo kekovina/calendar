@@ -24,6 +24,35 @@ export type SchedulerClassNames = {
 
 export type SchedulerDirection = 'horizontal' | 'vertical'
 
+// ─── Render option types ───────────────────────────────────────────────────────
+
+export type RenderResizeHandleOptions = {
+  dir: 'left' | 'right'
+  direction: SchedulerDirection
+}
+
+export type RenderIntervalContentOptions = {
+  interval: TimeRange
+  isSmall: boolean
+  isError: boolean
+  direction: SchedulerDirection
+}
+
+export type RenderLabelOptions = {
+  direction: SchedulerDirection
+}
+
+export type RenderEventOptions = {
+  event: SchedulerEvent
+  direction: SchedulerDirection
+}
+
+export type RenderRowLabelOptions = {
+  resource: SchedulerResource
+  date: Dayjs
+  direction: SchedulerDirection
+}
+
 export type TimeLineRangeProps = {
   id: string
   selectedInterval?: TimeRange | null
@@ -54,8 +83,10 @@ export type TimeLineRangeProps = {
   debug?: boolean
   className?: string
   classNames?: SchedulerClassNames
-  renderResizeHandle?: (dir: 'left' | 'right') => ReactNode
-  renderIntervalContent?: (interval: TimeRange, isSmall: boolean) => ReactNode
+  renderResizeHandle?: (options: RenderResizeHandleOptions) => ReactNode
+  renderIntervalContent?: (options: RenderIntervalContentOptions) => ReactNode
+  renderLabel?: (options: RenderLabelOptions) => ReactNode
+  renderEvent?: (options: RenderEventOptions) => ReactNode
 }
 
 // ─── Scheduler ────────────────────────────────────────────────────────────────
@@ -108,7 +139,8 @@ export type SchedulerProps = {
   debug?: boolean
   className?: string
   classNames?: SchedulerClassNames
-  renderResizeHandle?: (dir: 'left' | 'right') => ReactNode
-  renderIntervalContent?: (interval: TimeRange, isSmall: boolean) => ReactNode
-  renderRowLabel?: (row: { resource: SchedulerResource; date: Dayjs }) => ReactNode
+  renderResizeHandle?: (options: RenderResizeHandleOptions) => ReactNode
+  renderIntervalContent?: (options: RenderIntervalContentOptions) => ReactNode
+  renderRowLabel?: (options: RenderRowLabelOptions) => ReactNode
+  renderEvent?: (options: RenderEventOptions) => ReactNode
 }
