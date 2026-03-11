@@ -1,5 +1,5 @@
 {
-  "name": "@your-scope/scheduler",
+  "name": "@kekovina/calendar",
   "version": "0.1.0",
   "description": "A React 19 scheduler component",
   "author": "",
@@ -23,6 +23,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:playground": "vite build --config vite.config.playground.ts",
     "build:types": "tsc --emitDeclarationOnly",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
@@ -61,8 +63,14 @@
     "prettier": "^3.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
     "vite": "^6.4.1",
     "vite-plugin-dts": "^4.5.4"
+  },
+  "dependencies": {
+    "classnames": "^2.5.1",
+    "dayjs": "^1.11.19",
+    "react-rnd": "^10.5.2"
   }
 }
