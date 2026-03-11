@@ -23,6 +23,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:playground": "vite build --config vite.config.playground.ts",
     "build:types": "tsc --emitDeclarationOnly",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
