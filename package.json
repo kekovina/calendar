@@ -1,7 +1,7 @@
 {
-  "name": "@kekovina/calendar",
+  "name": "@kekovina.true/calendar",
   "version": "0.1.0",
-  "description": "A React 19 scheduler component",
+  "description": "A simple progressive calendar component for React 19.",
   "author": "",
   "license": "MIT",
   "keywords": [],
