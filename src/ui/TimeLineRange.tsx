@@ -12,6 +12,9 @@ import { useSlotClick } from '../hooks/useSlotClick'
 import type { SelectionError, TimeLineRangeProps } from '../types'
 import { generateDateArray, getSlotPosition, getSlotSize } from '../utils'
 
+const SELECTION_RATIO = 0.9
+const SELECTION_OFFSET_RATIO = (1 - SELECTION_RATIO) / 2
+
 const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
   (
     {
@@ -134,24 +137,29 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       : (carretRef.current?.clientWidth ?? 0) < 150
 
     // Compute SelectionRnd props depending on direction
-    const containerRect = internalRef.current?.getBoundingClientRect()
-    const selectionProps = isVertical
-      ? {
-          width: containerRect ? Math.round(containerRect.width * 0.9) : '90%',
-          height: rndState.width, // rndState.width holds the "size" (height in vertical)
-          posX: containerRect ? Math.round(containerRect.width * 0.05) : 0,
-          posY: rndState.posX, // rndState.posX holds the "pos" (y in vertical)
-          minWidth: 0,
-          minHeight: minSlotSize,
-        }
-      : {
-          width: rndState.width,
-          height: containerRect ? Math.round(containerRect.height * 0.9) : '90%',
-          posX: rndState.posX,
-          posY: containerRect ? Math.round(containerRect.height * 0.05) : 0,
-          minWidth: minSlotSize,
-          minHeight: 0,
-        }
+
+    const selectionProps = useMemo(() => {
+      const rect = internalRef.current?.getBoundingClientRect()
+      return isVertical
+        ? {
+            width: rect ? Math.round(rect.width * SELECTION_RATIO) : '90%',
+            height: rndState.width, // rndState.width holds the "size" (height in vertical)
+            posX: rect ? Math.round(rect.width * SELECTION_OFFSET_RATIO) : 0,
+            posY: rndState.posX, // rndState.posX holds the "pos" (y in vertical)
+            minWidth: 0,
+            minHeight: minSlotSize,
+          }
+        : {
+            width: rndState.width,
+            height: rect ? Math.round(rect.height * SELECTION_RATIO) : '90%',
+            posX: rndState.posX,
+            posY: rect ? Math.round(rect.height * SELECTION_OFFSET_RATIO) : 0,
+            minWidth: minSlotSize,
+            minHeight: 0,
+          }
+      // internalRef.current triggers recompute on container mount/resize
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVertical, rndState.width, rndState.posX, minSlotSize, internalRef.current])
 
     // Compute cross-drag preview element position/size
     const previewStyle = useMemo(() => {
@@ -176,16 +184,16 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
           position: 'absolute' as const,
           top: pos,
           height: size,
-          left: rect.width * 0.05,
-          width: '90%',
+          left: Math.round(rect.width * SELECTION_OFFSET_RATIO),
+          width: Math.round(rect.width * SELECTION_RATIO),
         }
       }
       return {
         position: 'absolute' as const,
         left: pos,
         width: size,
-        top: (rect.height * 0.1) / 2,
-        height: '90%',
+        top: Math.round(rect.height * SELECTION_OFFSET_RATIO),
+        height: Math.round(rect.height * SELECTION_RATIO),
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [previewInterval, startDate, interval, direction, isVertical, internalRef.current])
