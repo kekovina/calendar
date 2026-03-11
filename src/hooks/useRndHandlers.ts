@@ -203,16 +203,13 @@ export function useRndHandlers({
       const newStart = startDate.clone().add(newStartIndex * interval, 'minute')
 
       const offsetSize = isVertical ? ref.offsetHeight : ref.offsetWidth
-      const rectSize = isVertical
-        ? ref.getBoundingClientRect().height
-        : ref.getBoundingClientRect().width
       const newSizeInMinutes = Math.round((offsetSize / slotSize) * interval)
       const newEnd = newStart.clone().add(newSizeInMinutes, 'minute')
 
       const error = validateInterval(newStart, newEnd)
       onError(error)
       onChange?.({ range: [newStart, newEnd], error })
-      updateWidth(rectSize)
+      updateWidth((newSizeInMinutes / interval) * slotSize)
       updatePosition(pos)
       clearPreview()
     },

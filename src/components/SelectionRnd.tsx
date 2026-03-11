@@ -112,11 +112,11 @@ export const SelectionRnd: React.FC<SelectionRndProps> = ({
             }
           : {
               right: classNames(
-                'h-full cursor-col-resize rounded-r-2xl flex items-center flex justify-center',
+                'h-full cursor-col-resize rounded-r-2xl flex items-center justify-center',
                 handleCls ?? cls?.resizeHandleRight ?? 'bg-blue-700',
               ),
               left: classNames(
-                'h-full cursor-col-resize rounded-l-2xl flex items-center flex justify-center',
+                'h-full cursor-col-resize rounded-l-2xl flex items-center justify-center',
                 handleCls ?? cls?.resizeHandleLeft ?? 'bg-blue-700',
               ),
             }

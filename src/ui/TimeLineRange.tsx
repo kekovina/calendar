@@ -71,7 +71,6 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
       selectedInterval: selectedInterval ?? null,
       startDate,
       interval,
-      minimumInterval,
       timeLineRef: internalRef,
       direction,
     })
@@ -138,18 +137,18 @@ const TimeLineRange = forwardRef<HTMLDivElement, TimeLineRangeProps>(
     const containerRect = internalRef.current?.getBoundingClientRect()
     const selectionProps = isVertical
       ? {
-          width: '90%' as const,
+          width: containerRect ? Math.round(containerRect.width * 0.9) : '90%',
           height: rndState.width, // rndState.width holds the "size" (height in vertical)
-          posX: containerRect ? containerRect.width * 0.05 : 0,
+          posX: containerRect ? Math.round(containerRect.width * 0.05) : 0,
           posY: rndState.posX, // rndState.posX holds the "pos" (y in vertical)
           minWidth: 0,
           minHeight: minSlotSize,
         }
       : {
           width: rndState.width,
-          height: '90%' as const,
+          height: containerRect ? Math.round(containerRect.height * 0.9) : '90%',
           posX: rndState.posX,
-          posY: containerRect ? (containerRect.height * 0.1) / 2 : 0,
+          posY: containerRect ? Math.round(containerRect.height * 0.05) : 0,
           minWidth: minSlotSize,
           minHeight: 0,
         }

@@ -1,6 +1,20 @@
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import type { SchedulerDirection, TimeRange } from '../types'
+import type { SchedulerDirection, SchedulerEvent, TimeRange } from '../types'
+
+export const hasOverlapWithEvents = (
+  start: Dayjs,
+  end: Dayjs,
+  events: SchedulerEvent[],
+): boolean => {
+  const s = start.startOf('minute')
+  const e = end.startOf('minute')
+  return events.some(({ range: [eventStart, eventEnd] }) => {
+    const es = eventStart.startOf('minute')
+    const ee = eventEnd.startOf('minute')
+    return (s >= es && s < ee) || (e > es && e <= ee) || (s < es && e > ee)
+  })
+}
 
 export const generateDateArray = (
   start: string | Dayjs,

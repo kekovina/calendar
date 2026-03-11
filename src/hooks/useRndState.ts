@@ -8,7 +8,6 @@ type UseRndStateProps = {
   selectedInterval: TimeRange | null
   startDate: Dayjs
   interval: number
-  minimumInterval: number
   timeLineRef: RefObject<HTMLDivElement | null>
   direction?: SchedulerDirection
 }

@@ -496,7 +496,7 @@ export default function App() {
       return [
         ...prev,
         {
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           title: form.title,
           resourceId: form.resourceId,
           date: form.date,

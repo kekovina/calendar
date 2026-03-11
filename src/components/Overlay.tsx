@@ -63,14 +63,11 @@ export const Overlay: React.FC<OverlayProps> = ({
     <div className="absolute inset-0 z-20 overflow-hidden">
       {/* Fake timeline rows — visible as background through the blur */}
       <div className={isVertical ? 'flex h-full gap-1 p-1' : 'flex flex-col gap-1 p-1 h-full'}>
-        {FAKE_ROWS.map((row, i) => (
-          <div
-            key={i}
-            className={`relative rounded-lg ${row.bg} ${isVertical ? 'flex-1' : 'flex-1'}`}
-          >
-            {row.events.map((event, j) => (
+        {FAKE_ROWS.map((row) => (
+          <div key={row.bg} className={`relative rounded-lg ${row.bg} flex-1`}>
+            {row.events.map((event) => (
               <div
-                key={j}
+                key={event.start}
                 className={`absolute rounded-xl ${event.color}`}
                 style={
                   isVertical

@@ -4,6 +4,7 @@ import { useCallback, useId, useMemo, useState } from 'react'
 import TimeLineHeader from '../components/TimeLineHeader/TimeLineHeader'
 import { Overlay } from '../components/Overlay'
 import type { SchedulerProps, SchedulerResource, SelectionError, TimeRange } from '../types'
+import { hasOverlapWithEvents } from '../utils'
 import TimeLineRange from './TimeLineRange'
 
 const LABEL_WIDTH = 'w-28 shrink-0'
@@ -67,15 +68,7 @@ export function Scheduler({
       start: ReturnType<typeof dayjs>,
       end: ReturnType<typeof dayjs>,
     ): SelectionError => {
-      const events = row.resource.events ?? []
-      const s = start.startOf('minute')
-      const e = end.startOf('minute')
-      const hasOverlap = events.some(({ range: [es, ee] }) => {
-        const evS = es.startOf('minute')
-        const evE = ee.startOf('minute')
-        return (s >= evS && s < evE) || (e > evS && e <= evE) || (s < evS && e > evE)
-      })
-      if (hasOverlap) return 'overlap'
+      if (hasOverlapWithEvents(start, end, row.resource.events ?? [])) return 'overlap'
       if (disablePast && dayjs().isAfter(start)) return 'past'
       return null
     },
