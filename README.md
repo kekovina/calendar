@@ -1,15 +1,15 @@
-# @kekovina/calendar
+# @kekovina.true/calendar
 
 A flexible React time-slot scheduler with drag, resize, and multi-resource support. Supports horizontal and vertical layouts, cross-row drag-and-drop, event blocking, and full render customization.
 
 ## Installation
 
 ```bash
-npm install @kekovina/calendar
+npm install @kekovina.true/calendar
 ```
 
 ```bash
-yarn add @kekovina/calendar
+yarn add @kekovina.true/calendar
 ```
 
 **Peer dependencies** (must be installed separately):
@@ -26,12 +26,12 @@ The package depends on `dayjs` and `classnames` — they are bundled as direct d
 
 ```tsx
 import dayjs from 'dayjs'
-import { Scheduler } from '@kekovina/calendar'
+import { Scheduler } from '@kekovina.true/calendar'
 import type {
   SchedulerResource,
   SchedulerSelections,
   OnSchedulerChangeOptions,
-} from '@kekovina/calendar'
+} from '@kekovina.true/calendar'
 import { useState } from 'react'
 
 const resources: SchedulerResource[] = [
@@ -71,7 +71,7 @@ export default function App() {
 High-level component that renders a full scheduling grid with resource rows/columns, a time header, and built-in cross-row drag support.
 
 ```tsx
-import { Scheduler } from '@kekovina/calendar'
+import { Scheduler } from '@kekovina.true/calendar'
 ```
 
 #### Props
@@ -132,7 +132,7 @@ type OnCrossDragOptions = {
 Low-level single-row timeline. Use this directly when you need a standalone picker without the full scheduler grid, or when building a custom layout.
 
 ```tsx
-import { TimeLineRange } from '@kekovina/calendar'
+import { TimeLineRange } from '@kekovina.true/calendar'
 ```
 
 Accepts a forwarded `ref` (`RefObject<HTMLDivElement>`) on the inner track element.
@@ -198,7 +198,7 @@ type OnCrossDragMoveOptions = {
 Standalone time axis header. Used internally by `Scheduler`, but exported for custom layouts.
 
 ```tsx
-import { TimeLineHeader } from '@kekovina/calendar'
+import { TimeLineHeader } from '@kekovina.true/calendar'
 ```
 
 | Prop             | Type                         | Default         | Description                                                                  |
@@ -226,7 +226,7 @@ import type {
   SchedulerResource,
   SchedulerSelections,
   SchedulerClassNames,
-} from '@kekovina/calendar'
+} from '@kekovina.true/calendar'
 
 // A [start, end] tuple of Dayjs values
 type TimeRange = [Dayjs, Dayjs]
@@ -404,7 +404,7 @@ const resources: SchedulerResource[] = [
 ### Standalone `TimeLineRange`
 
 ```tsx
-import { TimeLineRange } from '@kekovina/calendar'
+import { TimeLineRange } from '@kekovina.true/calendar'
 
 const [interval, setInterval] = useState<TimeRange | null>(null)
 
